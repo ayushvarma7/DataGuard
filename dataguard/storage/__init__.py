@@ -6,7 +6,8 @@ from .models import (
     ValidationResult,
     ValidationRun,
     LineageNode,
-    LineageEdge
+    LineageEdge,
+    DataContract
 )
 from .metadata import MetadataStore
 
@@ -19,5 +20,6 @@ __all__ = [
     "ValidationRun",
     "LineageNode",
     "LineageEdge",
+    "DataContract",
     "MetadataStore"
 ]

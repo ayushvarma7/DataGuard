@@ -71,4 +71,19 @@ class LineageEdge(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict)
     timestamp: datetime = Field(default_factory=datetime.now)
 
+class DataContract(BaseModel):
+    """
+    Represents a Data Contract: A bundle of Schema + Rules + SLOs.
+    This is used to enforce quality standards between producers and consumers.
+    """
+    dataset_name: str
+    schema_snap: TableSchema = Field(alias="schema") # 'schema' is reserved in some contexts, but let's alias
+    rules: List[ValidationRule] = Field(default_factory=list)
+    slo: Dict[str, Any] = Field(default_factory=dict) # Service Level Objectives
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+    class Config:
+        populate_by_name = True
+
+
 
