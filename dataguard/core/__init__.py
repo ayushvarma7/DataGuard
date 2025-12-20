@@ -1,6 +1,7 @@
 from .schema import SchemaInferer
 from .drift import DriftDetector, DriftReport, SchemaDiff
 from .validator import RuleParser, SQLGenerator, ValidationExecutor
+from .lineage import LineageTracker, track_lineage
 
 __all__ = [
     "SchemaInferer",
@@ -9,5 +10,7 @@ __all__ = [
     "SchemaDiff",
     "RuleParser",
     "SQLGenerator",
-    "ValidationExecutor"
+    "ValidationExecutor",
+    "LineageTracker",
+    "track_lineage"
 ]
