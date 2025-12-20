@@ -14,7 +14,8 @@ import {
     AlertCircle,
     Database,
     Sparkles,
-    ArrowRight
+    ArrowRight,
+    Code2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -149,6 +150,22 @@ export default function ValidationPage() {
         }
     };
 
+    const exportToYAML = () => {
+        if (!activeTable) return;
+        const yaml = `dataset: ${activeTable}\nchecks:\n` +
+            rules.map(r => `  - column: "${r.column}"\n    type: ${r.type}`).join("\n");
+
+        const blob = new Blob([yaml], { type: "text/yaml" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${activeTable}_contract.yaml`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
     if (!activeTable) {
         return (
             <div className="flex flex-col items-center justify-center h-[60vh] text-center space-y-4">
@@ -184,7 +201,17 @@ export default function ValidationPage() {
                             <Play className="mr-2 h-4 w-4" />
                             Run All
                         </Button>
-
+                        {rules.length > 0 && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={exportToYAML}
+                                className="text-muted-foreground hover:text-primary transition-colors h-8"
+                            >
+                                <Code2 className="mr-2 h-4 w-4" />
+                                Export YAML
+                            </Button>
+                        )}
                         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                             <DialogTrigger asChild>
                                 <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">

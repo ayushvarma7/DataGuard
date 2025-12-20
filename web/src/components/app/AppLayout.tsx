@@ -2,19 +2,19 @@
 
 import React, { useState } from "react";
 import {
-    Shield,
-    LayoutDashboard,
-    FileSearch,
-    ShieldCheck,
-    GitBranch,
-    Settings,
-    Menu,
-    X,
     ChevronLeft,
     ChevronRight,
     Database,
     Layout,
-    Activity
+    Activity,
+    Terminal,
+    ShieldCheck,
+    GitGraph,
+    Table as TableIcon,
+    Shield,
+    Settings,
+    Menu,
+    X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -28,12 +28,13 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-    { title: "Overview", href: "/dashboard", icon: LayoutDashboard },
-    { title: "Schema View", href: "/dashboard/schema", icon: FileSearch },
-    { title: "Drift", href: "/dashboard/drift", icon: Activity },
-    { title: "Data Preview", href: "/dashboard/preview", icon: Layout },
+    { title: "Overview", href: "/dashboard", icon: Layout },
+    { title: "Schema", href: "/dashboard/schema", icon: Database },
     { title: "Validation", href: "/dashboard/validation", icon: ShieldCheck },
-    { title: "Lineage", href: "/dashboard/lineage", icon: GitBranch },
+    { title: "Drift", href: "/dashboard/drift", icon: Activity },
+    { title: "Preview", href: "/dashboard/preview", icon: TableIcon },
+    { title: "Lineage", href: "/dashboard/lineage", icon: GitGraph },
+    { title: "SQL Lab", href: "/dashboard/sql", icon: Terminal },
 ];
 
 function DashboardShell({ children }: { children: React.ReactNode }) {

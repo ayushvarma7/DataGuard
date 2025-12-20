@@ -19,6 +19,12 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import {
+    BarChart,
+    Bar,
+    ResponsiveContainer,
+    Cell
+} from "recharts";
 
 interface ColumnStats {
     name: string;
@@ -27,6 +33,7 @@ interface ColumnStats {
     nullPercentage: number;
     distinctCount: number;
     isNullable: boolean;
+    histogram?: { bin: number; count: number }[];
 }
 
 export default function SchemaPage() {
@@ -53,7 +60,7 @@ export default function SchemaPage() {
 
             setLoading(true);
             try {
-                // Build a massive aggregate query to get stats for all columns in one go
+                // 1. Basic Stats Query
                 const nullQueries = schema.map(col => `sum(case when "${col.column_name}" is null then 1 else 0 end) as "${col.column_name}_nulls"`).join(", ");
                 const distinctQueries = schema.map(col => `count(distinct "${col.column_name}") as "${col.column_name}_distinct"`).join(", ");
 
@@ -61,18 +68,40 @@ export default function SchemaPage() {
                 const results = await duckdbService.query(sql);
                 const rawStats = results[0];
 
-                const processedStats = schema.map(col => {
+                const processedStats: ColumnStats[] = await Promise.all(schema.map(async col => {
                     const nulls = Number(rawStats[`${col.column_name}_nulls`]);
                     const distinct = Number(rawStats[`${col.column_name}_distinct`]);
+
+                    let histogram;
+                    // 2. Fetch Histogram for Numeric Columns
+                    const isNumeric = /INT|FLOAT|DOUBLE|DECIMAL|HUGEINT/i.test(col.column_type);
+                    if (isNumeric && rowCount > 0) {
+                        try {
+                            const histSql = `
+                          WITH bins AS (
+                            SELECT floor(("${col.column_name}" - min_val) / (max_val - min_val + 0.000001) * 10) as bin
+                            FROM "${activeTable}", (SELECT min("${col.column_name}") as min_val, max("${col.column_name}") as max_val FROM "${activeTable}") as m
+                            WHERE "${col.column_name}" IS NOT NULL
+                          )
+                          SELECT bin, count(*) as count FROM bins GROUP BY bin ORDER BY bin
+                        `;
+                            const histRes = await duckdbService.query(histSql);
+                            histogram = histRes.map(r => ({ bin: Number(r.bin), count: Number(r.count) }));
+                        } catch (e) {
+                            console.warn(`Histogram failed for ${col.column_name}`, e);
+                        }
+                    }
+
                     return {
                         name: col.column_name,
                         type: col.column_type,
                         nullCount: nulls,
                         nullPercentage: rowCount > 0 ? (nulls / rowCount) * 100 : 0,
                         distinctCount: distinct,
-                        isNullable: col.null === "YES"
+                        isNullable: col.null === "YES",
+                        histogram
                     };
-                });
+                }));
 
                 setStats(processedStats);
             } catch (err) {
@@ -163,65 +192,99 @@ export default function SchemaPage() {
                             </div>
                         </GlassCard>
                     ))
-                ) : filteredStats.map((col, i) => (
-                    <GlassCard key={i} className="p-6 group hover:border-primary/30 transition-all duration-300" variant="subtle">
-                        <div className="flex items-start justify-between mb-6">
-                            <div className="space-y-1">
+                ) : filteredStats.map((col) => (
+                    <GlassCard key={col.name} className="p-5 flex flex-col justify-between group hover:border-primary/40 transition-all duration-300" variant="subtle">
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <h3 className="font-bold text-foreground group-hover:text-primary transition-colors">{col.name}</h3>
-                                    {col.nullCount === 0 && (
-                                        <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
-                                    )}
+                                    <div className="p-1.5 rounded-lg bg-white/5 border border-white/10 group-hover:border-primary/20 transition-colors">
+                                        <Type className="h-3.5 w-3.5 text-muted-foreground" />
+                                    </div>
+                                    <h3 className="font-bold text-sm tracking-tight text-foreground/90 truncate max-w-[120px]" title={col.name}>
+                                        {col.name}
+                                    </h3>
                                 </div>
-                                <Badge variant="outline" className="text-[9px] font-mono tracking-tighter py-0 px-2 bg-white/5 border-white/10">
+                                <Badge variant="outline" className="text-[9px] font-mono px-1.5 py-0 bg-white/5 border-white/10">
                                     {col.type}
                                 </Badge>
                             </div>
-                            <BarChart2 className="h-4 w-4 text-muted-foreground opacity-20 group-hover:opacity-100 transition-opacity" />
-                        </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase font-bold tracking-widest">
-                                    <Percent className="h-3 w-3" />
-                                    Nulls
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                                        <Hash className="h-3 w-3" />
+                                        Distinct
+                                    </div>
+                                    <p className="text-sm font-bold font-mono text-foreground">
+                                        {col.distinctCount.toLocaleString()}
+                                    </p>
                                 </div>
-                                <div className="flex items-end gap-2 text-xl font-bold">
-                                    <span className={cn(col.nullCount > 0 ? "text-orange-400" : "text-foreground")}>
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                                        <Percent className="h-3 w-3" />
+                                        Nulls
+                                    </div>
+                                    <p className={cn(
+                                        "text-sm font-bold font-mono",
+                                        col.nullPercentage > 5 ? "text-orange-400" : "text-foreground"
+                                    )}>
                                         {col.nullPercentage.toFixed(1)}%
-                                    </span>
-                                    <span className="text-[10px] text-muted-foreground mb-1 font-normal italic">
-                                        ({col.nullCount})
-                                    </span>
+                                    </p>
                                 </div>
                             </div>
 
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase font-bold tracking-widest">
-                                    <Hash className="h-3 w-3" />
-                                    Distinct
+                            <div className="space-y-1.5">
+                                <div className="flex items-center justify-between text-[10px]">
+                                    <span className="text-muted-foreground font-medium">Quality Score</span>
+                                    <span className="font-bold text-primary">{(100 - col.nullPercentage).toFixed(0)}%</span>
                                 </div>
-                                <div className="text-xl font-bold text-foreground">
-                                    {col.distinctCount.toLocaleString()}
+                                <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                                    <div
+                                        className={cn(
+                                            "h-full transition-all duration-500",
+                                            col.nullPercentage > 20 ? "bg-red-500" : col.nullPercentage > 5 ? "bg-orange-500" : "bg-primary"
+                                        )}
+                                        style={{ width: `${100 - col.nullPercentage}%` }}
+                                    />
                                 </div>
                             </div>
                         </div>
 
-                        {/* Quality Progress Bar */}
-                        <div className="mt-6 space-y-1.5">
-                            <div className="flex justify-between text-[10px] font-medium text-muted-foreground uppercase">
-                                <span>Data Quality</span>
-                                <span>{Math.max(0, 100 - col.nullPercentage).toFixed(0)}%</span>
+                        {col.histogram && (
+                            <div className="mt-4 pt-4 border-t border-white/5 h-16 w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={col.histogram}>
+                                        <Bar
+                                            dataKey="count"
+                                            radius={[2, 2, 0, 0]}
+                                        >
+                                            {col.histogram.map((entry, index) => (
+                                                <Cell
+                                                    key={`cell-${index}`}
+                                                    fill={col.nullPercentage > 5 ? "rgba(251, 146, 60, 0.4)" : "rgba(16, 185, 129, 0.4)"}
+                                                    className="hover:fill-primary transition-colors cursor-pointer"
+                                                />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
                             </div>
-                            <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                                <div
-                                    className={cn(
-                                        "h-full transition-all duration-1000",
-                                        col.nullPercentage > 20 ? "bg-red-500" : col.nullPercentage > 5 ? "bg-orange-400" : "bg-primary"
-                                    )}
-                                    style={{ width: `${100 - col.nullPercentage}%` }}
-                                />
+                        )}
+
+                        <div className="mt-4 flex items-center justify-between">
+                            <div className="flex items-center gap-1">
+                                {col.nullPercentage === 0 ? (
+                                    <CheckCircle2 className="h-3 w-3 text-primary" />
+                                ) : (
+                                    <AlertCircle className="h-3 w-3 text-orange-400" />
+                                )}
+                                <span className="text-[9px] font-medium text-muted-foreground">
+                                    {col.nullPercentage === 0 ? "Perfect" : "Imperfect"}
+                                </span>
                             </div>
+                            <Button variant="ghost" size="sm" className="h-6 text-[10px] px-2 hover:bg-white/5">
+                                Details
+                            </Button>
                         </div>
                     </GlassCard>
                 ))}
