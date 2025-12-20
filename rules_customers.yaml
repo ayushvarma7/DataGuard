@@ -1,0 +1,10 @@
+dataset: customers
+validations:
+  - column: email
+    rules:
+      - type: regex_match
+        pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+  - column: customer_id
+    rules:
+      - type: not_null
+      - type: unique

@@ -83,6 +83,11 @@ class SQLGenerator:
                 values_str = ", ".join([f"'{v}'" if isinstance(v, str) else str(v) for v in values])
                 return f"SELECT COUNT(*) FROM {table_name} WHERE {col} NOT IN ({values_str})"
             
+            case "regex_match":
+                pattern = rule.params.get('pattern', '.*')
+                # DuckDB uses regexp_matches function
+                return f"SELECT COUNT(*) FROM {table_name} WHERE NOT regexp_matches({col}, '{pattern}')"
+            
             case _:
                 raise ValueError(f"Unsupported rule type: {rule.type}")
 

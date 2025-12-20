@@ -1,0 +1,16 @@
+dataset: orders
+validations:
+  - column: order_id
+    rules:
+      - type: not_null
+      - type: unique
+  - column: status
+    rules:
+      - type: not_null
+      - type: in_set
+        values: ["PENDING", "SHIPPED", "DELIVERED", "CANCELLED"]
+  - column: quantity
+    rules:
+      - type: in_range
+        min: 1
+        max: 100
