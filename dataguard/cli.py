@@ -11,6 +11,7 @@ from dataguard.core.schema import SchemaInferer
 from dataguard.storage.metadata import MetadataStore
 from dataguard.storage.models import Dataset
 from dataguard.core.drift import DriftDetector
+from dataguard.core.validator import RuleParser, ValidationExecutor
 
 app = typer.Typer(
     name="dataguard",
@@ -173,7 +174,83 @@ def validate(
     rules: str = typer.Option(..., "--rules", "-r", help="Path to rules YAML"),
 ):
     """Run validations against a data file."""
-    console.print(f"[yellow]TODO:[/yellow] Validate {file_path} with rules {rules}")
+    path = Path(file_path).resolve()
+    rules_path = Path(rules).resolve()
+    
+    if not path.exists():
+        console.print(f"[bold red]Error:[/bold red] Data file not found: {path}")
+        raise typer.Exit(code=1)
+        
+    if not rules_path.exists():
+        console.print(f"[bold red]Error:[/bold red] Rules file not found: {rules_path}")
+        raise typer.Exit(code=1)
+
+    # 1. Parse Rules
+    console.print(f"📋 Loading rules from {rules_path.name}...")
+    try:
+        parsed_rules = RuleParser.parse_yaml(str(rules_path))
+    except Exception as e:
+        console.print(f"[bold red]Error parsing rules:[/bold red] {e}")
+        raise typer.Exit(code=1)
+
+    if not parsed_rules:
+        console.print("[yellow]No rules found in validation file.[/yellow]")
+        return
+
+    # 2. Derive dataset name from file name (or we could parse from YAML if we want)
+    # For now, let's use the file stem as the dataset name for tracking
+    dataset_name = path.stem
+    
+    # 3. Register dataset if not needed? 
+    # MetadataStore needs foreign key. So we must ensure dataset exists.
+    store = get_store()
+    existing_ds = store.get_dataset(dataset_name)
+    if not existing_ds:
+        # Auto-register
+        ds = Dataset(
+            name=dataset_name,
+            file_path=str(path),
+            format=path.suffix.lstrip('.')
+        )
+        store.register_dataset(ds)
+
+    # 4. Execute
+    console.print(f"🚀 Running {len(parsed_rules)} checks against [cyan]{dataset_name}[/cyan]...")
+    executor = ValidationExecutor()
+    run = executor.validate(dataset_name, str(path), parsed_rules)
+    
+    # 5. Save Results
+    store.save_validation_run(run)
+    
+    # 6. Report
+    table = Table(title=f"Validation Results: {dataset_name}")
+    table.add_column("Column", style="cyan")
+    table.add_column("Rule", style="magenta")
+    table.add_column("Status", justify="center")
+    table.add_column("Failures", justify="right", style="red")
+    
+    for res in run.results:
+        status = "[green]PASS[/green]" if res.passed else "[bold red]FAIL[/bold red]"
+        failures = str(res.failure_count) if not res.passed else "-"
+        # Format rule type + params
+        rule_desc = f"{res.rule.type}"
+        if res.rule.params:
+            rule_desc += f" {res.rule.params}"
+            
+        table.add_row(
+            res.rule.column,
+            rule_desc,
+            status,
+            failures
+        )
+        
+    console.print(table)
+    
+    if run.failed_checks > 0:
+        console.print(f"\n[bold red]❌ Validation Failed![/bold red] {run.failed_checks} checks failed.")
+        raise typer.Exit(code=1)
+    else:
+        console.print(f"\n[bold green]✅ Validation Passed![/bold green] All {run.total_checks} checks passed.")
 
 
 if __name__ == "__main__":

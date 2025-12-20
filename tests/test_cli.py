@@ -76,3 +76,57 @@ def test_schema_diff_with_drift(clean_db, tmp_path):
     assert "Drift Detected!" in result.stdout
     assert "Added columns" in result.stdout
     assert "b (BIGINT" in result.stdout or "b (LONG" in result.stdout # DuckDB type variation
+
+def test_validate_command(clean_db, tmp_path):
+    # 1. Create data
+    csv_path = tmp_path / "valid_data.csv"
+    pd.DataFrame({
+        'age': [20, 25, 30],
+        'email': ['a', 'b', 'c']
+    }).to_csv(csv_path, index=False)
+    
+    # 2. Create rules
+    rules_path = tmp_path / "rules.yaml"
+    with open(rules_path, "w") as f:
+        f.write("""
+dataset: valid_ds
+validations:
+  - column: age
+    rules:
+      - type: in_range
+        min: 0
+        max: 100
+        """)
+        
+    # 3. Run validate
+    result = runner.invoke(app, ["validate", str(csv_path), "--rules", str(rules_path)])
+    assert result.exit_code == 0
+    assert "Validation Passed" in result.stdout
+    assert "in_range" in result.stdout
+
+def test_validate_command_failure(clean_db, tmp_path):
+    # 1. Create failing data
+    csv_path = tmp_path / "fail_data.csv"
+    pd.DataFrame({
+        'age': [200], # Fails range
+    }).to_csv(csv_path, index=False)
+    
+    # 2. Rules
+    rules_path = tmp_path / "rules.yaml"
+    with open(rules_path, "w") as f:
+        f.write("""
+dataset: fail_ds
+validations:
+  - column: age
+    rules:
+      - type: in_range
+        max: 100
+        """)
+        
+    # 3. Run validate
+    result = runner.invoke(app, ["validate", str(csv_path), "--rules", str(rules_path)])
+    
+    assert result.exit_code == 1
+    assert "Validation Failed" in result.stdout
+    assert "1 checks failed" in result.stdout
+
