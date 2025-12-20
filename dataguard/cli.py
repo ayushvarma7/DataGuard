@@ -197,22 +197,36 @@ def validate(
         console.print("[yellow]No rules found in validation file.[/yellow]")
         return
 
-    # 2. Derive dataset name from file name (or we could parse from YAML if we want)
-    # For now, let's use the file stem as the dataset name for tracking
-    dataset_name = path.stem
-    
-    # 3. Register dataset if not needed? 
-    # MetadataStore needs foreign key. So we must ensure dataset exists.
-    store = get_store()
-    existing_ds = store.get_dataset(dataset_name)
-    if not existing_ds:
-        # Auto-register
-        ds = Dataset(
-            name=dataset_name,
-            file_path=str(path),
-            format=path.suffix.lstrip('.')
-        )
-        store.register_dataset(ds)
+    # Determine if file_path is an actual path or a dataset name
+    path = Path(file_path)
+    if path.exists():
+        path = path.resolve()
+        dataset_name = path.stem
+        # Register if new
+        store = get_store()
+        existing_ds = store.get_dataset(dataset_name)
+        if not existing_ds:
+            ds = Dataset(name=dataset_name, file_path=str(path), format=path.suffix.lstrip('.'))
+            store.register_dataset(ds)
+            
+    else:
+        # Argument is likely a DATASET NAME, not a file path
+        dataset_name = file_path
+        store = get_store()
+        existing_ds = store.get_dataset(dataset_name)
+        
+        if not existing_ds:
+            console.print(f"[bold red]Error:[/bold red] Data file not found: {file_path}")
+            console.print(f"Also tried looking up dataset '{dataset_name}' but it was not found in the metadata store.")
+            raise typer.Exit(code=1)
+            
+        # Use stored path
+        path = Path(existing_ds.file_path).resolve()
+        if not path.exists():
+             console.print(f"[bold red]Error:[/bold red] Registered file for dataset '{dataset_name}' does not exist at: {path}")
+             raise typer.Exit(code=1)
+             
+        # console.print(f"Using registered dataset '{dataset_name}' -> {path}")
 
     # 4. Execute
     console.print(f"🚀 Running {len(parsed_rules)} checks against [cyan]{dataset_name}[/cyan]...")
