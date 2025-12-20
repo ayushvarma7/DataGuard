@@ -2,7 +2,7 @@ from typing import List, Dict, Any, Optional
 import yaml
 from pathlib import Path
 from pydantic import BaseModel
-from dataguard.storage.models import ValidationRule
+from dataguard.storage.models import ValidationRule, ValidationResult, ValidationRun
 
 class ValidationConfig(BaseModel):
     """Represents the top-level structure of a rules.yaml file."""
@@ -85,3 +85,77 @@ class SQLGenerator:
             
             case _:
                 raise ValueError(f"Unsupported rule type: {rule.type}")
+
+class ValidationExecutor:
+    """Executes validation rules against a dataset."""
+    
+    def __init__(self, engine=None):
+        # We import here to avoid circular dependencies if any, 
+        # though DuckDBEngine is in .engine not .core
+        from dataguard.engine.duckdb_engine import DuckDBEngine
+        self.engine = engine or DuckDBEngine()
+        self.generator = SQLGenerator()
+        
+    def validate(self, dataset_name: str, file_path: str, rules: List[ValidationRule]) -> ValidationRun:
+        """
+        Run validation rules on the given file.
+        
+        Args:
+            dataset_name: Name of the dataset
+            file_path: Path to file (CSV/Parquet)
+            rules: List of rules to check
+            
+        Returns:
+            ValidationRun object containing results
+        """
+        # Load file as virtual table
+        table_name = "target_table"
+        # We need to ensure table name is safe/unique if running parallel, 
+        # but for now 'target_table' in a fresh connection is fine.
+        
+        # Connect & Load
+        # self.engine.connect() # Engine connects on init
+        self.engine.load_file(file_path, table_name)
+        
+        results = []
+        failed_count = 0
+        
+        for rule in rules:
+            try:
+                query = self.generator.generate_query(rule, table_name)
+                
+                # Execute query (expecting count)
+                # query_df returns a DF. We expect 1 row, 1 col = count
+                df = self.engine.query_df(query)
+                count = df.iloc[0, 0]
+                
+                passed = (count == 0)
+                if not passed:
+                    failed_count += 1
+                    
+                results.append(ValidationResult(
+                    rule=rule,
+                    passed=passed,
+                    failure_count=int(count),
+                    executed_query=query
+                ))
+                
+            except Exception as e:
+                # If SQL fails, mark as check failure/error
+                # For now, let's treat exception as a failure execution
+                # Ideally we'd have an error field in ValidationResult
+                print(f"Error executing rule {rule}: {e}")
+                results.append(ValidationResult(
+                    rule=rule,
+                    passed=False,
+                    failure_count=-1, # Indicator of execution error
+                    executed_query=f"ERROR: {str(e)}"
+                ))
+                failed_count += 1
+        
+        return ValidationRun(
+            dataset_name=dataset_name,
+            results=results,
+            total_checks=len(rules),
+            failed_checks=failed_count
+        )

@@ -1,6 +1,6 @@
 from .schema import SchemaInferer
 from .drift import DriftDetector, DriftReport, SchemaDiff
-from .validator import RuleParser, SQLGenerator
+from .validator import RuleParser, SQLGenerator, ValidationExecutor
 
 __all__ = [
     "SchemaInferer",
@@ -8,5 +8,6 @@ __all__ = [
     "DriftReport",
     "SchemaDiff",
     "RuleParser",
-    "SQLGenerator"
+    "SQLGenerator",
+    "ValidationExecutor"
 ]

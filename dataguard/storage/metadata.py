@@ -3,7 +3,7 @@ import json
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 from pathlib import Path
-from .models import Dataset, TableSchema
+from .models import Dataset, TableSchema, ValidationRun
 
 class MetadataStore:
     """
@@ -42,6 +42,18 @@ class MetadataStore:
                 dataset_name TEXT NOT NULL,
                 schema_json TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (dataset_name) REFERENCES datasets(name)
+            )
+        """)
+
+        # Table: Validation Runs (Task 2.6)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS validation_runs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                dataset_name TEXT NOT NULL,
+                run_json TEXT NOT NULL,
+                run_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                failed_checks INTEGER NOT NULL,
                 FOREIGN KEY (dataset_name) REFERENCES datasets(name)
             )
         """)
@@ -118,3 +130,40 @@ class MetadataStore:
         if row:
             return TableSchema.model_validate_json(row['schema_json'])
         return None
+
+    def save_validation_run(self, run: ValidationRun) -> None:
+        """Save a new validation run."""
+        conn = self._get_conn()
+        cursor = conn.cursor()
+        
+        run_json = run.model_dump_json()
+        
+        cursor.execute("""
+            INSERT INTO validation_runs (dataset_name, run_json, failed_checks, run_at)
+            VALUES (?, ?, ?, ?)
+        """, (
+            run.dataset_name,
+            run_json,
+            run.failed_checks,
+            run.run_at.isoformat()
+        ))
+        
+        conn.commit()
+        conn.close()
+
+    def get_validation_history(self, dataset_name: str, limit: int = 10) -> List[ValidationRun]:
+        """Get past validation runs for a dataset."""
+        conn = self._get_conn()
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT run_json FROM validation_runs
+            WHERE dataset_name = ?
+            ORDER BY run_at DESC
+            LIMIT ?
+        """, (dataset_name, limit))
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        return [ValidationRun.model_validate_json(r['run_json']) for r in rows]
