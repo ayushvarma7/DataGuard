@@ -58,6 +58,28 @@ class MetadataStore:
             )
         """)
         
+        # Table: Lineage Nodes
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS lineage_nodes (
+                id TEXT PRIMARY KEY,
+                type TEXT NOT NULL,
+                name TEXT NOT NULL
+            )
+        """)
+        
+        # Table: Lineage Edges
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS lineage_edges (
+                source_id TEXT NOT NULL,
+                target_id TEXT NOT NULL,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                source_type TEXT,
+                target_type TEXT,
+                FOREIGN KEY (source_id) REFERENCES lineage_nodes(id),
+                FOREIGN KEY (target_id) REFERENCES lineage_nodes(id)
+            )
+        """)
+        
         conn.commit()
         conn.close()
         
@@ -167,3 +189,39 @@ class MetadataStore:
         conn.close()
         
         return [ValidationRun.model_validate_json(r['run_json']) for r in rows]
+
+    def save_lineage_edge(self, source_id: str, target_id: str, source_type: str = "dataset", target_type: str = "dataset"):
+        """Save a lineage dependency."""
+        conn = self._get_conn()
+        cursor = conn.cursor()
+        
+        # Upsert Nodes (simplistic: ignore name updates for now)
+        cursor.execute("INSERT OR IGNORE INTO lineage_nodes (id, type, name) VALUES (?, ?, ?)", (source_id, source_type, source_id))
+        cursor.execute("INSERT OR IGNORE INTO lineage_nodes (id, type, name) VALUES (?, ?, ?)", (target_id, target_type, target_id))
+        
+        # Insert Edge
+        cursor.execute("""
+            INSERT INTO lineage_edges (source_id, target_id, source_type, target_type, timestamp)
+            VALUES (?, ?, ?, ?, ?)
+        """, (source_id, target_id, source_type, target_type, datetime.now().isoformat()))
+        
+        conn.commit()
+        conn.close()
+
+    def get_lineage_graph(self) -> Dict[str, List[str]]:
+        """Get naive adjacency list of the graph."""
+        conn = self._get_conn()
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT source_id, target_id FROM lineage_edges")
+        rows = cursor.fetchall()
+        
+        graph = {}
+        for row in rows:
+            src, tgt = row[0], row[1]
+            if src not in graph:
+                graph[src] = []
+            graph[src].append(tgt)
+            
+        conn.close()
+        return graph

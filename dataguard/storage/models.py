@@ -57,3 +57,18 @@ class ValidationRun(BaseModel):
     failed_checks: int
     run_at: datetime = Field(default_factory=datetime.now)
 
+class LineageNode(BaseModel):
+    """Represents a node in the lineage graph (dataset or process)."""
+    id: str # unique identifier
+    type: str # 'dataset' or 'process' or 'job'
+    name: str # human readable name
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+class LineageEdge(BaseModel):
+    """Represents a flow of data between nodes."""
+    source_id: str
+    target_id: str
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+    timestamp: datetime = Field(default_factory=datetime.now)
+
+

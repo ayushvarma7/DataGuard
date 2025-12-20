@@ -4,7 +4,9 @@ from .models import (
     Dataset, 
     ValidationRule,
     ValidationResult,
-    ValidationRun
+    ValidationRun,
+    LineageNode,
+    LineageEdge
 )
 from .metadata import MetadataStore
 
@@ -15,5 +17,7 @@ __all__ = [
     "ValidationRule",
     "ValidationResult",
     "ValidationRun",
+    "LineageNode",
+    "LineageEdge",
     "MetadataStore"
 ]
