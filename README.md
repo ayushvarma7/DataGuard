@@ -156,14 +156,14 @@ dataguard/
 ## 📋 Development Roadmap
 
 ### Phase 1: Schema Inference & Drift Detection ✅
-- [ ] Project setup & dependencies
-- [ ] DuckDB engine wrapper
-- [ ] Schema inference from CSV/Parquet
-- [ ] SQLite metadata store
-- [ ] Schema snapshot storage
-- [ ] Drift detection algorithm
-- [ ] CLI commands: `schema infer`, `schema diff`
-- [ ] Unit tests
+- [x] Project setup & dependencies
+- [x] DuckDB engine wrapper
+- [x] Schema inference from CSV/Parquet
+- [x] SQLite metadata store
+- [x] Schema snapshot storage
+- [x] Drift detection algorithm
+- [x] CLI commands: `schema infer`, `schema diff`
+- [x] Unit tests
 
 ### Phase 2: Validation Rules Engine 🔄
 - [ ] YAML rule parser
