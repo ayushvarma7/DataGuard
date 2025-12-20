@@ -4,10 +4,12 @@ from .models import (
     Dataset, 
     ValidationRule
 )
+from .metadata import MetadataStore
 
 __all__ = [
     "ColumnSchema",
     "TableSchema",
     "Dataset",
-    "ValidationRule"
+    "ValidationRule",
+    "MetadataStore"
 ]
