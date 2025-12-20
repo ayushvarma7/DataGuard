@@ -50,7 +50,7 @@ if page == "Home":
     if not df_datasets.empty:
         st.dataframe(
             df_datasets[['name', 'format', 'registered_at']].sort_values('registered_at', ascending=False),
-            use_container_width=True
+            width="stretch"
         )
     else:
         st.info("No datasets registered yet. Use the CLI to infer a schema!")
@@ -186,7 +186,7 @@ elif page == "Validation History":
             st.markdown("### Run Log")
             st.dataframe(
                 history_df[['id', 'run_at', 'failed_checks']].sort_values('run_at', ascending=False),
-                use_container_width=True
+                width="stretch"
             )
 
 elif page == "Contract Builder":
