@@ -165,31 +165,29 @@ dataguard/
 - [x] CLI commands: `schema infer`, `schema diff`
 - [x] Unit tests
 
-### Phase 2: Validation Rules Engine 🔄
-- [ ] YAML rule parser
-- [ ] Validation rule types (not_null, unique, range, etc.)
-- [ ] SQL query generator for each rule type
-- [ ] Validation executor
-- [ ] Report generator (JSON, terminal table)
-- [ ] CLI command: `validate`
-- [ ] Unit tests
+### Phase 2: Validation Rules Engine ✅
+- [x] YAML rule parser
+- [x] Validation rule types (not_null, unique, range, etc.)
+- [x] SQL query generator for each rule type
+- [x] Validation executor
+- [x] Report generator (JSON, terminal table)
+- [x] CLI command: `validate`
+- [x] Unit tests
 
-### Phase 3: Lineage Tracking 📅
-- [ ] Lineage data model (DAG)
-- [ ] Decorator-based lineage capture
-- [ ] SQL parser for automatic lineage (optional)
-- [ ] Lineage storage in SQLite
-- [ ] Mermaid diagram generator
-- [ ] CLI commands: `lineage add`, `lineage show`
-- [ ] Unit tests
+### Phase 3: Lineage Tracking ✅
+- [x] Lineage data model (DAG)
+- [x] Decorator-based lineage capture (`@track_lineage`)
+- [x] Lineage storage in SQLite
+- [x] Mermaid diagram generator (CLI & Dashboard)
+- [x] CLI commands: `lineage show`
+- [x] Unit tests
 
-### Phase 4: Data Contracts & Polish 📅
-- [ ] Contract schema definition
-- [ ] Auto-generate contracts from schema + rules
-- [ ] Contract validation
-- [ ] Streamlit dashboard
-- [ ] CLI command: `contract generate`
-- [ ] Documentation
+### Phase 4: Data Contracts & Polish ✅
+- [x] Contract schema definition (`DataContract`)
+- [x] Auto-generate contracts from schema + rules (`contract generate`)
+- [x] Contract verification (`contract verify`)
+- [x] Streamlit dashboard (Schema, Drift, Lineage)
+- [x] Documentation Polish
 
 ### Phase 5: Browser Demo 📅
 - [ ] React app setup

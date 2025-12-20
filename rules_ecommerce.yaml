@@ -1,0 +1,25 @@
+dataset: orders
+validations:
+  - column: order_id
+    rules:
+      - type: not_null
+      - type: unique
+
+  - column: status
+    rules:
+      - type: not_null
+      - type: in_set
+        values: ["PENDING", "SHIPPED", "DELIVERED", "CANCELLED"]
+
+  - column: quantity
+    rules:
+      - type: in_range
+        min: 1
+        max: 100
+
+dataset: customers
+validations:
+  - column: email
+    rules:
+      - type: regex_match
+        pattern: "^[a-zA-Z0-9._%%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
