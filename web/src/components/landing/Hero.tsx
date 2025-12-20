@@ -50,7 +50,7 @@ export function Hero() {
                         <Github className="h-4 w-4" />
                         GitHub
                     </a>
-                    <Link href="/app">
+                    <Link href="/dashboard">
                         <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                             Launch App
                         </Button>
@@ -93,7 +93,7 @@ export function Hero() {
 
                 {/* CTA Buttons */}
                 <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-                    <Link href="/app">
+                    <Link href="/dashboard">
                         <Button size="lg" className="h-14 px-8 text-lg bg-primary hover:bg-primary/90 text-primary-foreground glow-primary group">
                             Try It Now — No Signup
                             <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />

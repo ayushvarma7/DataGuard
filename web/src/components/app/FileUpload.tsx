@@ -6,14 +6,14 @@ import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { duckdbService } from "@/lib/duckdb";
+import { useData } from "@/context/DataContext";
 
 interface FileUploadProps {
     onUploadSuccess?: (tableName: string, rowCount: number) => void;
 }
 
 export function FileUpload({ onUploadSuccess }: FileUploadProps) {
-    const [status, setStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
-    const [error, setError] = useState<string | null>(null);
+    const { uploadStatus: status, setUploadStatus: setStatus, setError, error } = useData();
     const [fileName, setFileName] = useState<string | null>(null);
 
     const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -21,7 +21,7 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
         if (!file) return;
 
         setFileName(file.name);
-        setStatus("uploading");
+        setStatus("processing");
         setError(null);
 
         try {
@@ -36,7 +36,7 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
             setStatus("error");
             setError(err.message || "Failed to process file");
         }
-    }, [onUploadSuccess]);
+    }, [onUploadSuccess, setStatus, setError]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
@@ -54,7 +54,7 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
                 {...getRootProps()}
                 className={cn(
                     "relative group cursor-pointer transition-all duration-300",
-                    status === "uploading" && "pointer-events-none opacity-80"
+                    status === "processing" && "pointer-events-none opacity-80"
                 )}
             >
                 <GlassCard
@@ -72,7 +72,7 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
                         <input {...getInputProps()} />
 
                         <div className="relative">
-                            {status === "uploading" ? (
+                            {status === "processing" ? (
                                 <Loader2 className="h-10 w-10 text-primary animate-spin" />
                             ) : status === "success" ? (
                                 <div className="bg-primary/20 p-5 rounded-2xl border border-primary/20">
@@ -91,13 +91,13 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
 
                         <div className="text-center space-y-2">
                             <h3 className="text-xl font-semibold">
-                                {status === "uploading" ? "Processing with DuckDB..." :
+                                {status === "processing" ? "Processing with DuckDB..." :
                                     status === "success" ? "File Ready!" :
                                         status === "error" ? "Upload Failed" :
                                             isDragActive ? "Drop it here!" : "Upload Data File"}
                             </h3>
                             <p className="text-muted-foreground text-sm max-w-xs mx-auto">
-                                {status === "uploading" ? `Loading ${fileName} into WASM memory...` :
+                                {status === "processing" ? `Loading ${fileName} into WASM memory...` :
                                     status === "success" ? `Successfully loaded ${fileName}` :
                                         status === "error" ? error :
                                             "Select a CSV or Parquet file to instantly run data quality checks locally."}

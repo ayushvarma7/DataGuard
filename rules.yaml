@@ -1,0 +1,7 @@
+dataset: users
+validations:
+  - column: age
+    rules:
+      - type: in_range
+        min: 0
+        max: 100

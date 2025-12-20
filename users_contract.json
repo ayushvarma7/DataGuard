@@ -1,0 +1,45 @@
+{
+  "dataset_name": "users",
+  "schema": {
+    "columns": [
+      {
+        "name": "id",
+        "dtype": "BIGINT",
+        "nullable": true,
+        "metadata": {}
+      },
+      {
+        "name": "name",
+        "dtype": "VARCHAR",
+        "nullable": true,
+        "metadata": {}
+      },
+      {
+        "name": "age",
+        "dtype": "BIGINT",
+        "nullable": true,
+        "metadata": {}
+      },
+      {
+        "name": "email",
+        "dtype": "VARCHAR",
+        "nullable": true,
+        "metadata": {}
+      }
+    ],
+    "primary_key": null,
+    "generated_at": "2025-12-20T01:00:52.545176"
+  },
+  "rules": [
+    {
+      "type": "in_range",
+      "column": "age",
+      "params": {
+        "min": 0,
+        "max": 100
+      }
+    }
+  ],
+  "slo": {},
+  "metadata": {}
+}
