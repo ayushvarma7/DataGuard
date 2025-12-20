@@ -13,7 +13,8 @@ import {
     ChevronLeft,
     ChevronRight,
     Database,
-    Layout
+    Layout,
+    Activity
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -29,6 +30,7 @@ interface NavItem {
 const navItems: NavItem[] = [
     { title: "Overview", href: "/dashboard", icon: LayoutDashboard },
     { title: "Schema View", href: "/dashboard/schema", icon: FileSearch },
+    { title: "Drift", href: "/dashboard/drift", icon: Activity },
     { title: "Data Preview", href: "/dashboard/preview", icon: Layout },
     { title: "Validation", href: "/dashboard/validation", icon: ShieldCheck },
     { title: "Lineage", href: "/dashboard/lineage", icon: GitBranch },

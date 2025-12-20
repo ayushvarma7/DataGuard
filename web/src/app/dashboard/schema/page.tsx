@@ -12,11 +12,13 @@ import {
     Percent,
     CheckCircle2,
     AlertCircle,
-    BarChart2
+    BarChart2,
+    Activity
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface ColumnStats {
     name: string;
@@ -28,7 +30,7 @@ interface ColumnStats {
 }
 
 export default function SchemaPage() {
-    const { activeTable, schema, rowCount } = useData();
+    const { activeTable, schema, rowCount, setBaseline } = useData();
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState<ColumnStats[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
@@ -102,14 +104,25 @@ export default function SchemaPage() {
                         Table: {activeTable} • {stats.length} Columns detected
                     </p>
                 </div>
-                <div className="relative w-full md:w-72">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <input
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search columns or types..."
-                        className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors"
-                    />
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => activeTable && setBaseline(activeTable, stats)}
+                        className="border-white/10 hover:bg-white/5 whitespace-nowrap"
+                    >
+                        <Activity className="mr-2 h-4 w-4" />
+                        Set as Baseline
+                    </Button>
+                    <div className="relative w-full md:w-72">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <input
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search columns or types..."
+                            className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors"
+                        />
+                    </div>
                 </div>
             </div>
 
