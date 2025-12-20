@@ -10,14 +10,17 @@ import {
     Clock,
     FileText,
     ShieldCheck,
-    AlertCircle
+    AlertCircle,
+    RefreshCw,
+    X
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { duckdbService } from "@/lib/duckdb";
 import { useData } from "@/context/DataContext";
+import { Button } from "@/components/ui/button";
 
 export default function DashboardPage() {
-    const { activeTable, rowCount, setTable } = useData();
+    const { activeTable, rowCount, setTable, resetData } = useData();
     const [previewData, setPreviewData] = useState<any[] | null>(null);
 
     useEffect(() => {
@@ -29,6 +32,8 @@ export default function DashboardPage() {
                 } catch (err) {
                     console.error("Preview failed:", err);
                 }
+            } else {
+                setPreviewData(null);
             }
         }
         loadPreview();
@@ -43,6 +48,17 @@ export default function DashboardPage() {
                     <p className="text-muted-foreground">Monitor and manage your data quality engine.</p>
                 </div>
                 <div className="flex gap-2 text-xs font-medium">
+                    {activeTable && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={resetData}
+                            className="h-8 border-white/10 hover:bg-red-500/10 hover:text-red-500 transition-colors"
+                        >
+                            <X className="mr-2 h-3.5 w-3.5" />
+                            Clear Dataset
+                        </Button>
+                    )}
                     <div className="px-3 py-1.5 rounded-lg border border-white/5 bg-white/5 flex items-center gap-2">
                         <Clock className="h-3.5 w-3.5 text-muted-foreground" />
                         Last Scan: {activeTable ? "Just now" : "No active dataset"}

@@ -38,10 +38,31 @@ interface DriftItem {
 }
 
 export default function DriftPage() {
-    const { activeTable, schema, rowCount, getActiveBaseline } = useData();
+    const { activeTable, schema, rowCount, baselines } = useData();
     const [loading, setLoading] = useState(false);
     const [currentStats, setCurrentStats] = useState<ColumnStats[]>([]);
-    const baseline = getActiveBaseline();
+    const [selectedBaselineSource, setSelectedBaselineSource] = useState<string | null>(null);
+
+    // Auto-select baseline
+    const baseline = useMemo(() => {
+        if (!activeTable || Object.keys(baselines).length === 0) return null;
+
+        // 1. Try exact match
+        if (baselines[activeTable]) {
+            if (!selectedBaselineSource) setSelectedBaselineSource(activeTable);
+            return baselines[activeTable];
+        }
+
+        // 2. Try selected source
+        if (selectedBaselineSource && baselines[selectedBaselineSource]) {
+            return baselines[selectedBaselineSource];
+        }
+
+        // 3. Default to first available
+        const firstKey = Object.keys(baselines)[0];
+        if (!selectedBaselineSource) setSelectedBaselineSource(firstKey);
+        return baselines[firstKey];
+    }, [activeTable, baselines, selectedBaselineSource]);
 
     useEffect(() => {
         async function fetchCurrentStats() {
@@ -168,10 +189,21 @@ export default function DriftPage() {
                 <div className="space-y-1">
                     <h1 className="text-3xl font-bold tracking-tight">Drift Analysis</h1>
                     <p className="text-muted-foreground font-mono text-xs uppercase tracking-wider">
-                        Comparing Current vs. Baseline
+                        Comparing Current vs. {selectedBaselineSource || "Baseline"}
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
+                    {Object.keys(baselines).length > 1 && (
+                        <select
+                            className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-primary"
+                            value={selectedBaselineSource || ""}
+                            onChange={(e) => setSelectedBaselineSource(e.target.value)}
+                        >
+                            {Object.keys(baselines).map(key => (
+                                <option key={key} value={key}>Baseline: {key}</option>
+                            ))}
+                        </select>
+                    )}
                     <Button variant="outline" size="sm" onClick={() => window.location.reload()} className="border-white/10">
                         <RefreshCw className="mr-2 h-4 w-4" />
                         Re-Scan

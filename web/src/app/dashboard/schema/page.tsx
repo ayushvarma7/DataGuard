@@ -34,6 +34,15 @@ export default function SchemaPage() {
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState<ColumnStats[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
+    const [baselineSuccess, setBaselineSuccess] = useState(false);
+
+    const handleSetBaseline = () => {
+        if (activeTable) {
+            setBaseline(activeTable, stats);
+            setBaselineSuccess(true);
+            setTimeout(() => setBaselineSuccess(false), 3000);
+        }
+    };
 
     useEffect(() => {
         async function fetchStats() {
@@ -108,11 +117,25 @@ export default function SchemaPage() {
                     <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => activeTable && setBaseline(activeTable, stats)}
-                        className="border-white/10 hover:bg-white/5 whitespace-nowrap"
+                        onClick={handleSetBaseline}
+                        className={cn(
+                            "transition-all duration-300 whitespace-nowrap",
+                            baselineSuccess
+                                ? "bg-primary/20 text-primary border-primary/50 hover:bg-primary/30"
+                                : "border-white/10 hover:bg-white/5"
+                        )}
                     >
-                        <Activity className="mr-2 h-4 w-4" />
-                        Set as Baseline
+                        {baselineSuccess ? (
+                            <>
+                                <CheckCircle2 className="mr-2 h-4 w-4" />
+                                Baseline Set
+                            </>
+                        ) : (
+                            <>
+                                <Activity className="mr-2 h-4 w-4" />
+                                Set as Baseline
+                            </>
+                        )}
                     </Button>
                     <div className="relative w-full md:w-72">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
