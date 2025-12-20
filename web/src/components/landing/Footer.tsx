@@ -82,7 +82,7 @@ export function Footer() {
                     <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
                     <Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
                     <span className="flex items-center gap-1.5 grayscale opacity-50">
-                        Made with <Heart className="h-3 w-3 text-red-500 fill-red-500" /> in London
+                        Made with <Heart className="h-3 w-3 text-red-500 fill-red-500" /> in United States
                     </span>
                 </div>
             </div>

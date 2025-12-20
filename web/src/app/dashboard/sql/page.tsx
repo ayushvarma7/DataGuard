@@ -106,7 +106,7 @@ export default function SQLLabPage() {
                         <textarea
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            className="w-full h-48 bg-transparent p-6 font-mono text-sm focus:outline-none placeholder:text-muted-foreground/30 text-primary-foreground/90 leading-relaxed custom-scrollbar"
+                            className="w-full h-48 bg-black/40 p-6 font-mono text-base focus:outline-none focus:ring-1 focus:ring-primary/50 placeholder:text-muted-foreground/30 text-white leading-relaxed custom-scrollbar selection:bg-primary/30"
                             placeholder="Type your SQL query here... e.g., SELECT * FROM orders"
                             spellCheck={false}
                         />
