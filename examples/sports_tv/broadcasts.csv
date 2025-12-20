@@ -1,0 +1,6 @@
+broadcast_id,match_id,channel,start_time,duration_mins,is_live
+1,1,Sky Sports,2024-12-15 15:30:00,120,true
+2,2,DAZN,2024-12-16 18:00:00,115,true
+3,3,Sky Sports,2024-12-17 20:30:00,118,true
+4,4,ARD,2024-12-18 15:30:00,125,false
+5,5,Sky Sports,2024-12-19 15:30:00,122,true

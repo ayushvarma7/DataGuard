@@ -1,0 +1,34 @@
+dataset: matches
+description: Validation rules for SportsTV matches data
+
+validations:
+  - column: match_id
+    rules:
+      - type: not_null
+      - type: unique
+
+  - column: home_team
+    rules:
+      - type: not_null
+
+  - column: away_team
+    rules:
+      - type: not_null
+
+  - column: broadcast_date
+    rules:
+      - type: not_null
+
+  - column: viewer_count
+    rules:
+      - type: not_null
+      - type: in_range
+        min: 0
+        max: 100000000
+
+  - column: league_id
+    rules:
+      - type: not_null
+      - type: referential_integrity
+        parent_table: leagues
+        parent_column: id
