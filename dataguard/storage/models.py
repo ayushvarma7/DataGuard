@@ -40,3 +40,20 @@ class Dataset(BaseModel):
     
     # Track the latest known schema
     current_schema: Optional[TableSchema] = None
+
+class ValidationResult(BaseModel):
+    """Result of a single validation rule execution."""
+    rule: ValidationRule
+    passed: bool
+    failure_count: int
+    executed_query: str
+    timestamp: datetime = Field(default_factory=datetime.now)
+
+class ValidationRun(BaseModel):
+    """Group of validation results for a dataset execution."""
+    dataset_name: str
+    results: List[ValidationResult]
+    total_checks: int
+    failed_checks: int
+    run_at: datetime = Field(default_factory=datetime.now)
+

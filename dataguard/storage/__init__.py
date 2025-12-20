@@ -2,7 +2,9 @@ from .models import (
     ColumnSchema, 
     TableSchema, 
     Dataset, 
-    ValidationRule
+    ValidationRule,
+    ValidationResult,
+    ValidationRun
 )
 from .metadata import MetadataStore
 
@@ -11,5 +13,7 @@ __all__ = [
     "TableSchema",
     "Dataset",
     "ValidationRule",
+    "ValidationResult",
+    "ValidationRun",
     "MetadataStore"
 ]
