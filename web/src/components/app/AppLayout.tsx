@@ -14,7 +14,8 @@ import {
     Shield,
     Settings,
     Menu,
-    X
+    X,
+    BookOpen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -34,6 +35,7 @@ const navItems: NavItem[] = [
     { title: "Validation", href: "/dashboard/validation", icon: ShieldCheck },
     { title: "Drift", href: "/dashboard/drift", icon: Activity },
     { title: "Lineage", href: "/dashboard/lineage", icon: GitGraph },
+    { title: "Docs", href: "/dashboard/docs", icon: BookOpen },
 ];
 
 function DashboardShell({ children }: { children: React.ReactNode }) {

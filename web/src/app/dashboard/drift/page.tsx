@@ -38,10 +38,14 @@ interface DriftItem {
 }
 
 export default function DriftPage() {
-    const { activeTable, schema, rowCount, baselines } = useData();
+    const { activeTable, tables, baselines } = useData();
     const [loading, setLoading] = useState(false);
     const [currentStats, setCurrentStats] = useState<ColumnStats[]>([]);
     const [selectedBaselineSource, setSelectedBaselineSource] = useState<string | null>(null);
+
+    const activeTableData = activeTable ? tables[activeTable] : null;
+    const schema = activeTableData?.schema;
+    const rowCount = activeTableData?.rowCount || 0;
 
     // Auto-select baseline
     const baseline = useMemo(() => {

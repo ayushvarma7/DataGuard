@@ -81,8 +81,12 @@ const nodeTypes = {
 };
 
 export default function LineagePage() {
-    const { activeTable, schema, rowCount, baselines } = useData();
+    const { activeTable, tables, baselines } = useData();
     const [driftStatus, setDriftStatus] = useState<"clean" | "at-risk" | "broken">("clean");
+
+    const activeTableData = activeTable ? tables[activeTable] : null;
+    const schema = activeTableData?.schema;
+    const rowCount = activeTableData?.rowCount || 0;
 
     useEffect(() => {
         async function checkImpact() {
@@ -107,7 +111,7 @@ export default function LineagePage() {
                 schema.forEach(col => {
                     const currentNulls = Number(res[0][`${col.column_name}_nulls`]);
                     const currentPct = (currentNulls / rowCount) * 100;
-                    const baselineCol = baseline.find(b => b.name === col.column_name);
+                    const baselineCol = baseline.find((b: any) => b.name === col.column_name);
                     if (baselineCol && Math.abs(currentPct - baselineCol.nullPercentage) > 10) {
                         hasQualityDrift = true;
                     }
@@ -122,46 +126,72 @@ export default function LineagePage() {
     }, [activeTable, schema, baselines, rowCount]);
 
     const nodes: Node[] = useMemo(() => {
-        if (!activeTable) return [];
+        const tableList = Object.values(tables);
+        if (tableList.length === 0) return [];
 
-        return [
-            {
-                id: "source-1",
-                type: "custom",
-                position: { x: 0, y: 150 },
-                data: { label: "Source File", name: activeTable, icon: FileText, color: "text-blue-400" },
+        const sourceNodes: Node[] = tableList.map((t, i) => ({
+            id: `source-${t.name}`,
+            type: "custom",
+            position: { x: 0, y: i * 150 },
+            data: { label: "Source File", name: t.name, icon: FileText, color: "text-blue-400" },
+        }));
+
+        const centerY = (tableList.length - 1) * 75;
+
+        const engineNode: Node = {
+            id: "engine-1",
+            type: "custom",
+            position: { x: 300, y: centerY },
+            data: {
+                label: "Compute Engine",
+                name: "DuckDB WASM",
+                icon: Database,
+                color: "text-primary",
+                status: activeTable && driftStatus !== "clean" ? driftStatus : undefined
             },
-            {
-                id: "engine-1",
-                type: "custom",
-                position: { x: 300, y: 150 },
-                data: { label: "Compute Engine", name: "DuckDB WASM", icon: Database, color: "text-primary", status: driftStatus === "clean" ? undefined : driftStatus },
-            },
+        };
+
+        const viewNodes: Node[] = [
             {
                 id: "view-1",
                 type: "custom",
-                position: { x: 600, y: 50 },
-                data: { label: "Output View", name: "Data Preview", icon: Layout, color: "text-secondary", status: driftStatus === "clean" ? undefined : driftStatus },
+                position: { x: 600, y: centerY - 100 },
+                data: { label: "Output View", name: "Data Preview", icon: Layout, color: "text-secondary", status: activeTable && driftStatus !== "clean" ? driftStatus : undefined },
             },
             {
                 id: "view-2",
                 type: "custom",
-                position: { x: 600, y: 250 },
-                data: { label: "Quality Layer", name: "Validation Report", icon: ShieldCheck, color: "text-orange-400", status: driftStatus === "clean" ? undefined : driftStatus },
+                position: { x: 600, y: centerY + 100 },
+                data: { label: "Quality Layer", name: "Validation Report", icon: ShieldCheck, color: "text-orange-400", status: activeTable && driftStatus !== "clean" ? driftStatus : undefined },
             },
         ];
-    }, [activeTable, driftStatus]);
+
+        return [...sourceNodes, engineNode, ...viewNodes];
+    }, [tables, activeTable, driftStatus]);
 
     const edges: Edge[] = useMemo(() => {
-        if (!activeTable) return [];
+        const tableList = Object.values(tables);
+        if (tableList.length === 0) return [];
         const edgeColor = driftStatus === "broken" ? "#ef4444" : driftStatus === "at-risk" ? "#f97316" : "#10b981";
 
+        const sourceToEngineEdges: Edge[] = tableList.map((t) => ({
+            id: `e-source-${t.name}`,
+            source: `source-${t.name}`,
+            target: "engine-1",
+            animated: t.name === activeTable && driftStatus === "clean",
+            style: {
+                stroke: t.name === activeTable ? edgeColor : "#1e293b",
+                strokeWidth: t.name === activeTable ? 2 : 1,
+                opacity: t.name === activeTable ? 1 : 0.3
+            }
+        }));
+
         return [
-            { id: "e1-2", source: "source-1", target: "engine-1", animated: driftStatus === "clean", style: { stroke: edgeColor, strokeWidth: 2 } },
+            ...sourceToEngineEdges,
             { id: "e2-3", source: "engine-1", target: "view-1", animated: driftStatus === "clean", style: { stroke: edgeColor, strokeWidth: 2, opacity: driftStatus === "at-risk" ? 0.8 : 0.5 } },
             { id: "e2-4", source: "engine-1", target: "view-2", animated: driftStatus === "clean", style: { stroke: edgeColor, strokeWidth: 2, opacity: driftStatus === "at-risk" ? 0.8 : 0.5 } },
         ];
-    }, [activeTable, driftStatus]);
+    }, [tables, activeTable, driftStatus]);
 
     if (!activeTable) {
         return (

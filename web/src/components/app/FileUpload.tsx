@@ -13,7 +13,7 @@ interface FileUploadProps {
 }
 
 export function FileUpload({ onUploadSuccess }: FileUploadProps) {
-    const { uploadStatus: status, setUploadStatus: setStatus, setError, error } = useData();
+    const { uploadStatus: status, setUploadStatus: setStatus, setError, error, addTable } = useData();
     const [fileName, setFileName] = useState<string | null>(null);
 
     const onDrop = useCallback(async (acceptedFiles: File[]) => {
@@ -28,7 +28,9 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
             // Use filename as table name (sanitized)
             const tableName = file.name.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
             const count = await duckdbService.loadFile(file, tableName);
+            const schema = await duckdbService.getSchema(tableName);
 
+            addTable(tableName, count, schema);
             setStatus("success");
             onUploadSuccess?.(tableName, count);
         } catch (err: any) {
@@ -36,7 +38,7 @@ export function FileUpload({ onUploadSuccess }: FileUploadProps) {
             setStatus("error");
             setError(err.message || "Failed to process file");
         }
-    }, [onUploadSuccess, setStatus, setError]);
+    }, [onUploadSuccess, setStatus, setError, addTable]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,

@@ -37,11 +37,15 @@ interface ColumnStats {
 }
 
 export default function SchemaPage() {
-    const { activeTable, schema, rowCount, setBaseline } = useData();
+    const { activeTable, tables, setBaseline } = useData();
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState<ColumnStats[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [baselineSuccess, setBaselineSuccess] = useState(false);
+
+    const activeTableData = activeTable ? tables[activeTable] : null;
+    const schema = activeTableData?.schema;
+    const rowCount = activeTableData?.rowCount || 0;
 
     const handleSetBaseline = () => {
         if (activeTable) {

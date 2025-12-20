@@ -43,11 +43,16 @@ interface ValidationResult {
 }
 
 export default function ValidationPage() {
-    const { activeTable, schema, rowCount, rules, setRules } = useData();
+    const { activeTable, tables, rules, setRules } = useData();
     const [results, setResults] = useState<Record<string, ValidationResult>>({});
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [newRule, setNewRule] = useState<Partial<ValidationRule>>({ type: "not_null" });
     const [stats, setStats] = useState<any[]>([]);
+
+    const activeTableData = activeTable ? tables[activeTable] : null;
+    const schema = activeTableData?.schema;
+    const rowCount = activeTableData?.rowCount || 0;
+    const tableRules = activeTable ? (rules[activeTable] || []) : [];
 
     // Fetch stats for suggestions
     useEffect(() => {
@@ -75,18 +80,19 @@ export default function ValidationPage() {
         const sugs: ValidationRule[] = [];
         stats.forEach(s => {
             // Suggest Not Null if 0 nulls
-            if (s.nullCount === 0 && !rules.find(r => r.column === s.name && r.type === "not_null")) {
+            if (s.nullCount === 0 && !tableRules.find(r => r.column === s.name && r.type === "not_null")) {
                 sugs.push({ id: `sug-${s.name}-nn`, type: "not_null", column: s.name });
             }
             // Suggest Unique if 100% distinct
-            if (s.distinctCount === rowCount && rowCount > 0 && !rules.find(r => r.column === s.name && r.type === "unique")) {
+            if (s.distinctCount === rowCount && rowCount > 0 && !tableRules.find(r => r.column === s.name && r.type === "unique")) {
                 sugs.push({ id: `sug-${s.name}-u`, type: "unique", column: s.name });
             }
         });
         return sugs.slice(0, 5); // Max 5 suggestions
-    }, [activeTable, stats, rowCount, rules]);
+    }, [activeTable, stats, rowCount, tableRules]);
 
     const addRule = (ruleOverride?: ValidationRule) => {
+        if (!activeTable) return;
         const ruleToAdd = ruleOverride || {
             id: Math.random().toString(36).substr(2, 9),
             type: newRule.type as any,
@@ -94,13 +100,14 @@ export default function ValidationPage() {
         };
 
         if (!ruleToAdd.column || !ruleToAdd.type) return;
-        setRules([...rules, ruleToAdd]);
+        setRules(activeTable, [...tableRules, ruleToAdd]);
         setIsDialogOpen(false);
         setNewRule({ type: "not_null" });
     };
 
     const removeRule = (id: string) => {
-        setRules(rules.filter(r => r.id !== id));
+        if (!activeTable) return;
+        setRules(activeTable, tableRules.filter(r => r.id !== id));
         const newResults = { ...results };
         delete newResults[id];
         setResults(newResults);
@@ -145,7 +152,7 @@ export default function ValidationPage() {
     };
 
     const runAll = async () => {
-        for (const rule of rules) {
+        for (const rule of tableRules) {
             await runRule(rule);
         }
     };
@@ -153,7 +160,7 @@ export default function ValidationPage() {
     const exportToYAML = () => {
         if (!activeTable) return;
         const yaml = `dataset: ${activeTable}\nchecks:\n` +
-            rules.map(r => `  - column: "${r.column}"\n    type: ${r.type}`).join("\n");
+            tableRules.map(r => `  - column: "${r.column}"\n    type: ${r.type}`).join("\n");
 
         const blob = new Blob([yaml], { type: "text/yaml" });
         const url = URL.createObjectURL(blob);
@@ -195,13 +202,13 @@ export default function ValidationPage() {
                             variant="outline"
                             size="sm"
                             onClick={runAll}
-                            disabled={rules.length === 0}
+                            disabled={tableRules.length === 0}
                             className="border-primary/20 hover:bg-primary/5 text-primary"
                         >
                             <Play className="mr-2 h-4 w-4" />
                             Run All
                         </Button>
-                        {rules.length > 0 && (
+                        {tableRules.length > 0 && (
                             <Button
                                 variant="ghost"
                                 size="sm"
@@ -260,12 +267,12 @@ export default function ValidationPage() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-3">
-                    {rules.length === 0 ? (
+                    {tableRules.length === 0 ? (
                         <div className="text-center py-20 bg-white/5 border border-dashed border-white/10 rounded-2xl">
                             <ShieldCheck className="h-10 w-10 text-muted-foreground mx-auto mb-4 opacity-20" />
                             <p className="text-muted-foreground">No validation rules defined yet.</p>
                         </div>
-                    ) : rules.map((rule) => {
+                    ) : tableRules.map((rule) => {
                         const result = results[rule.id];
                         return (
                             <GlassCard key={rule.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-6" variant="subtle">

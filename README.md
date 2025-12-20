@@ -8,7 +8,7 @@
 
 DataGuard is a lightweight, open-source data quality framework that helps data engineers catch schema changes, validate data quality, and track column-level lineage—all without expensive enterprise tools.
 
-**🌐 [Try the Live Demo](https://yourusername.github.io/dataguard)** — Runs entirely in your browser, no server required.
+**🌐 [Try the Live Demo (Vercel)](https://dataguard-pi.vercel.app)** — Multi-Table Engine, SQL Lab, and interactive lineage. Your data never leaves your machine.
 
 ---
 
@@ -189,13 +189,14 @@ dataguard/
 - [x] Streamlit dashboard (Schema, Drift, Lineage)
 - [x] Documentation Polish
 
-### Phase 5: Browser Demo 📅
-- [ ] React app setup
-- [ ] DuckDB-WASM integration
-- [ ] File upload & parsing
-- [ ] Schema inference in browser
-- [ ] Validation in browser
-- [ ] Deploy to GitHub Pages
+### Phase 5: Browser-Native Dashboard ✅
+- [x] React + Next.js 16 setup
+- [x] DuckDB-WASM Multi-Table Integration
+- [x] Local-first Privacy Design
+- [x] Visual Data Profiling (Histograms)
+- [x] Full SQL Lab & Workbench
+- [x] Multi-Source Lineage Tracking
+- [x] Vercel Deployment Optimization
 
 ---
 
@@ -244,6 +245,18 @@ validations:
 | `freshness` | Data not older than threshold | `max_age_hours` |
 | `referential_integrity` | FK exists in parent | `parent_table`, `parent_column` |
 | `row_count` | Table has expected rows | `min`, `max` |
+
+## ☁️ Deployment (Vercel)
+
+Deploying DataGuard is seamless. Since it's a static Next.js application, it can be hosted on Vercel with zero configuration.
+
+1. **Fork** this repository.
+2. **Connect** your fork to Vercel.
+3. Vercel will auto-detect Next.js and build using the optimized Webpack configuration.
+4. **Enjoy** your private, edge-distributed data quality platform!
+
+> [!NOTE]
+> We use the `--webpack` flag for production builds to ensure maximum stability and cross-browser compatibility for the DuckDB-WASM integration.
 
 ---
 

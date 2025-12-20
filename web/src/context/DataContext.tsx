@@ -3,41 +3,46 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { duckdbService } from "@/lib/duckdb";
 
+interface LoadedTable {
+    name: string;
+    rowCount: number;
+    schema: any[];
+}
+
 interface DataState {
     activeTable: string | null;
-    rowCount: number;
-    schema: any[] | null;
+    tables: Record<string, LoadedTable>;
     uploadStatus: "idle" | "processing" | "success" | "error";
     error: string | null;
     baselines: Record<string, any[]>;
-    rules: any[];
+    rules: Record<string, any[]>; // Rules grouped by table
 }
 
 interface DataContextType extends DataState {
-    setTable: (name: string, count: number) => Promise<void>;
-    refreshSchema: () => Promise<void>;
+    addTable: (name: string, count: number, schema: any[]) => void;
+    setActiveTable: (name: string | null) => void;
+    removeTable: (name: string) => void;
     resetData: () => void;
     setUploadStatus: (status: DataState["uploadStatus"]) => void;
     setError: (msg: string | null) => void;
     setBaseline: (tableName: string, schema: any[]) => void;
-    setRules: (rules: any[]) => void;
+    setRules: (tableName: string, rules: any[]) => void;
     getActiveBaseline: () => any[] | null;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-const STORAGE_KEY = "dataguard_state";
+const STORAGE_KEY = "dataguard_state_v2"; // Bump version for schema change
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
     const [isLoaded, setIsLoaded] = useState(false);
     const [state, setState] = useState<DataState>({
         activeTable: null,
-        rowCount: 0,
-        schema: null,
+        tables: {},
         uploadStatus: "idle",
         error: null,
         baselines: {},
-        rules: [],
+        rules: {},
     });
 
     // Load state from localStorage on mount
@@ -49,8 +54,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
                 setState(prev => ({
                     ...prev,
                     baselines: parsed.baselines || {},
-                    rules: parsed.rules || [],
-                    // We don't persist activeTable/rowCount/schema because WASM memory is volatile
+                    rules: parsed.rules || {},
                 }));
             } catch (e) {
                 console.error("Failed to load state from localStorage:", e);
@@ -70,33 +74,40 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }
     }, [state.baselines, state.rules, isLoaded]);
 
-    const setTable = useCallback(async (name: string, count: number) => {
-        setState(prev => ({ ...prev, activeTable: name, rowCount: count, uploadStatus: "success", error: null }));
-
-        try {
-            const schema = await duckdbService.getSchema(name);
-            setState(prev => ({ ...prev, schema }));
-        } catch (err) {
-            console.error("Failed to fetch schema:", err);
-        }
+    const addTable = useCallback((name: string, count: number, schema: any[]) => {
+        setState(prev => {
+            const newTables = { ...prev.tables, [name]: { name, rowCount: count, schema } };
+            return {
+                ...prev,
+                tables: newTables,
+                activeTable: prev.activeTable || name,
+                uploadStatus: "success",
+                error: null
+            };
+        });
     }, []);
 
-    const refreshSchema = useCallback(async () => {
-        if (!state.activeTable) return;
-        try {
-            const schema = await duckdbService.getSchema(state.activeTable);
-            setState(prev => ({ ...prev, schema }));
-        } catch (err) {
-            console.error("Failed to refresh schema:", err);
-        }
-    }, [state.activeTable]);
+    const setActiveTable = useCallback((name: string | null) => {
+        setState(prev => ({ ...prev, activeTable: name }));
+    }, []);
+
+    const removeTable = useCallback((name: string) => {
+        setState(prev => {
+            const newTables = { ...prev.tables };
+            delete newTables[name];
+            return {
+                ...prev,
+                tables: newTables,
+                activeTable: prev.activeTable === name ? (Object.keys(newTables)[0] || null) : prev.activeTable
+            };
+        });
+    }, []);
 
     const resetData = useCallback(() => {
         setState(prev => ({
             ...prev,
             activeTable: null,
-            rowCount: 0,
-            schema: null,
+            tables: {},
             uploadStatus: "idle",
             error: null,
         }));
@@ -117,8 +128,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }));
     }, []);
 
-    const setRules = useCallback((rules: any[]) => {
-        setState(prev => ({ ...prev, rules }));
+    const setRules = useCallback((tableName: string, rules: any[]) => {
+        setState(prev => ({
+            ...prev,
+            rules: { ...prev.rules, [tableName]: rules }
+        }));
     }, []);
 
     const getActiveBaseline = useCallback(() => {
@@ -131,8 +145,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     return (
         <DataContext.Provider value={{
             ...state,
-            setTable,
-            refreshSchema,
+            addTable,
+            setActiveTable,
+            removeTable,
             resetData,
             setUploadStatus,
             setError,

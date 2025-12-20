@@ -15,20 +15,35 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DataGuard - Open Source Data Quality Framework",
-  description: "Schema drift detection, validation rules, and lineage tracking — all in your browser. Your data never leaves your machine.",
-  keywords: ["data quality", "schema drift", "data validation", "data lineage", "DuckDB", "open source"],
+  title: "DataGuard | Open-Source Data Quality & Lineage",
+  description: "Detect schema drift, define quality rules, and track data lineage - all in-browser via DuckDB-WASM. Your data never leaves your machine.",
+  keywords: ["data quality", "schema drift", "data validation", "data lineage", "DuckDB", "open source", "privacy-first"],
   authors: [{ name: "Ayush Varma" }],
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
+  manifest: "/manifest.json",
   openGraph: {
-    title: "DataGuard - Data Quality You Can Actually Trust",
-    description: "Schema drift detection, validation rules, and lineage tracking — all in your browser.",
+    title: "DataGuard | Browser-Native Data Quality",
+    description: "Privacy-first data quality framework powered by DuckDB-WASM.",
+    url: "https://dataguard.dev",
+    siteName: "DataGuard",
+    images: [
+      {
+        url: "/logo.png",
+        width: 512,
+        height: 512,
+      },
+    ],
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "DataGuard - Open Source Data Quality Framework",
-    description: "Schema drift detection, validation rules, and lineage tracking — all in your browser.",
+    title: "DataGuard | Open Source Data Quality",
+    description: "Detect schema drift and monitor quality rules in-browser.",
+    images: ["/logo.png"],
   },
 };
 

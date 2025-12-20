@@ -19,7 +19,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { cn } from "@/lib/utils";
 
 export default function SQLLabPage() {
-    const { activeTable } = useData();
+    const { activeTable, tables } = useData();
     const [query, setQuery] = useState(activeTable ? `SELECT * FROM "${activeTable}" LIMIT 10` : "");
     const [results, setResults] = useState<any[] | null>(null);
     const [loading, setLoading] = useState(false);
@@ -41,13 +41,13 @@ export default function SQLLabPage() {
     };
 
     const snippets = [
-        { name: "Preview 10", sql: `SELECT * FROM "${activeTable}" LIMIT 10` },
-        { name: "Schema Inspect", sql: `DESCRIBE "${activeTable}"` },
+        { name: "Preview 10", sql: activeTable ? `SELECT * FROM "${activeTable}" LIMIT 10` : "" },
+        { name: "Schema Inspect", sql: activeTable ? `DESCRIBE "${activeTable}"` : "" },
         { name: "Top 5 Nulls", sql: activeTable ? `SELECT * FROM "${activeTable}" WHERE "${activeTable}" IS NULL LIMIT 5` : "" },
-        { name: "Row Count", sql: `SELECT COUNT(*) FROM "${activeTable}"` },
+        { name: "Row Count", sql: activeTable ? `SELECT COUNT(*) FROM "${activeTable}"` : "" },
     ];
 
-    if (!activeTable) {
+    if (Object.keys(tables).length === 0) {
         return (
             <div className="flex flex-col items-center justify-center h-[60vh] text-center space-y-4">
                 <div className="bg-primary/10 p-6 rounded-full">
@@ -178,32 +178,58 @@ export default function SQLLabPage() {
                     </div>
                 </div>
 
-                {/* Sidebar - Snippets */}
-                <div className="space-y-6">
-                    <div className="flex items-center gap-2 px-1">
-                        <div className="bg-primary/20 p-1.5 rounded-lg">
-                            <Sparkles className="h-4 w-4 text-primary" />
+                {/* Sidebar - Tables & Snippets */}
+                <div className="space-y-8">
+                    {/* Tables Registry */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 px-1">
+                            <Database className="h-4 w-4 text-primary" />
+                            <h3 className="font-bold text-sm tracking-tight uppercase">Tables</h3>
                         </div>
-                        <h3 className="font-bold text-sm tracking-tight">Lab Snippets</h3>
+                        <div className="space-y-1">
+                            {Object.values(tables).map((t) => (
+                                <div
+                                    key={t.name}
+                                    className={cn(
+                                        "px-3 py-2 rounded-lg text-xs font-mono flex items-center justify-between group transition-colors cursor-pointer",
+                                        activeTable === t.name ? "bg-primary/10 text-primary border border-primary/20" : "text-muted-foreground hover:bg-white/5"
+                                    )}
+                                    onClick={() => setQuery(`SELECT * FROM "${t.name}" LIMIT 10`)}
+                                >
+                                    <span className="truncate">{t.name}</span>
+                                    <TableIcon className="h-3 w-3 opacity-30 group-hover:opacity-100 transition-opacity" />
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
-                    <div className="space-y-3">
-                        {snippets.map((snippet, i) => (
-                            <GlassCard
-                                key={i}
-                                className="p-4 border-white/5 group hover:border-primary/40 transition-all duration-300 cursor-pointer"
-                                variant="subtle"
-                                onClick={() => setQuery(snippet.sql)}
-                            >
-                                <div className="flex items-center justify-between mb-2">
-                                    <h4 className="text-[11px] font-bold text-foreground/90 tracking-tight">{snippet.name}</h4>
-                                    <TableIcon className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
-                                </div>
-                                <code className="text-[9px] font-mono text-muted-foreground line-clamp-2 bg-black/20 p-2 rounded block">
-                                    {snippet.sql}
-                                </code>
-                            </GlassCard>
-                        ))}
+                    {/* Lab Snippets */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 px-1">
+                            <div className="bg-primary/20 p-1.5 rounded-lg text-primary">
+                                <Sparkles className="h-4 w-4" />
+                            </div>
+                            <h3 className="font-bold text-sm tracking-tight uppercase">Snippets</h3>
+                        </div>
+
+                        <div className="space-y-3">
+                            {snippets.map((snippet, i) => (
+                                <GlassCard
+                                    key={i}
+                                    className="p-4 border-white/5 group hover:border-primary/40 transition-all duration-300 cursor-pointer"
+                                    variant="subtle"
+                                    onClick={() => setQuery(snippet.sql)}
+                                >
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h4 className="text-[11px] font-bold text-foreground/90 tracking-tight">{snippet.name}</h4>
+                                        <Play className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
+                                    </div>
+                                    <code className="text-[9px] font-mono text-muted-foreground line-clamp-2 bg-black/20 p-2 rounded block">
+                                        {snippet.sql}
+                                    </code>
+                                </GlassCard>
+                            ))}
+                        </div>
                     </div>
 
                     <div className="bg-blue-500/5 rounded-2xl p-4 border border-blue-500/10">

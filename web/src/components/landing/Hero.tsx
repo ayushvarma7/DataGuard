@@ -45,8 +45,8 @@ export function Hero() {
                     <span className="text-xl font-bold tracking-tight text-foreground">DataGuard</span>
                 </div>
                 <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground mr-1">
-                    <Link href="/docs" className="hover:text-foreground transition-colors">Documentation</Link>
-                    <a href="https://github.com" target="_blank" className="flex items-center gap-1.5 hover:text-foreground transition-colors">
+                    <Link href="/dashboard/docs" className="hover:text-foreground transition-colors">Documentation</Link>
+                    <a href="https://github.com/ayushvarma7/DataGuard" target="_blank" className="flex items-center gap-1.5 hover:text-foreground transition-colors">
                         <Github className="h-4 w-4" />
                         GitHub
                     </a>
@@ -99,7 +99,7 @@ export function Hero() {
                             <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                         </Button>
                     </Link>
-                    <a href="https://github.com" target="_blank">
+                    <a href="https://github.com/ayushvarma7/DataGuard" target="_blank">
                         <Button size="lg" variant="outline" className="h-14 px-8 text-lg border-white/10 hover:bg-white/5 backdrop-blur-sm">
                             <Github className="mr-2 h-5 w-5" />
                             View on GitHub
