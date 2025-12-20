@@ -130,3 +130,26 @@ validations:
     assert "Validation Failed" in result.stdout
     assert "1 checks failed" in result.stdout
 
+def test_lineage_command(clean_db):
+    """Test lineage show command."""
+    from dataguard.storage.metadata import MetadataStore
+    
+    # 1. Seed lineage
+    store = MetadataStore()
+    store.save_lineage_edge("A", "B")
+    store.save_lineage_edge("B", "C")
+    
+    # 2. Run CLI
+    result = runner.invoke(app, ["lineage", "show", "A"])
+    
+    assert result.exit_code == 0
+    assert "Lineage for A" in result.stdout
+    assert "Downstream" in result.stdout
+    assert "↳ B" in result.stdout
+    assert "↳ C" in result.stdout # Should find C via BFS
+    
+    # Test mermaid
+    result_mermaid = runner.invoke(app, ["lineage", "show", "A", "--format", "mermaid"])
+    assert "graph TD;" in result_mermaid.stdout
+    assert "A --> B;" in result_mermaid.stdout
+

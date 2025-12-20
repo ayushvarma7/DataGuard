@@ -253,5 +253,87 @@ def validate(
         console.print(f"\n[bold green]✅ Validation Passed![/bold green] All {run.total_checks} checks passed.")
 
 
+# Lineage subcommand group
+lineage_app = typer.Typer(help="Lineage operations")
+app.add_typer(lineage_app, name="lineage")
+
+
+@lineage_app.command("show")
+def lineage_show(
+    name: str = typer.Argument(..., help="Dataset or Process name"),
+    format: str = typer.Option("text", "--format", "-f", help="Output format: text, mermaid"),
+):
+    """Show lineage dependencies for a dataset."""
+    store = get_store()
+    graph = store.get_lineage_graph()
+    
+    # Check if node exists in graph (either as source or target)
+    # Graph is {source: [targets]}
+    all_nodes = set(graph.keys())
+    for targets in graph.values():
+        all_nodes.update(targets)
+        
+    if name not in all_nodes:
+        console.print(f"[bold red]Node '{name}' not found in lineage graph.[/bold red]")
+        return # Don't exit 1, just informational
+
+    if format == "mermaid":
+        console.print("graph TD;")
+        for src, targets in graph.items():
+            for tgt in targets:
+                console.print(f"    {src} --> {tgt};")
+        return
+
+    # Text format: Simple BFS to show downstream
+    console.print(f"🔗 Lineage for [cyan]{name}[/cyan]")
+    
+    # downstream
+    console.print("[bold]Downstream (Impacts):[/bold]")
+    queue = [(name, 0)]
+    visited = {name}
+    
+    if name not in graph:
+        console.print("  (None)")
+    else:
+        while queue:
+            curr, level = queue.pop(0)
+            if level > 0:
+                indent = "  " * level
+                console.print(f"{indent}↳ {curr}")
+            
+            if curr in graph:
+                for neighbor in graph[curr]:
+                    if neighbor not in visited:
+                        visited.add(neighbor)
+                        queue.append((neighbor, level + 1))
+
+    # Upstream (Sources) - Inefficient but works for small graphs
+    # We need to reverse the graph
+    rev_graph = {}
+    for src, targets in graph.items():
+        for tgt in targets:
+            if tgt not in rev_graph:
+                rev_graph[tgt] = []
+            rev_graph[tgt].append(src)
+            
+    console.print("[bold]Upstream (Sources):[/bold]")
+    queue = [(name, 0)]
+    visited = {name}
+    
+    if name not in rev_graph:
+        console.print("  (None)")
+    else:
+        while queue:
+            curr, level = queue.pop(0)
+            if level > 0:
+                indent = "  " * level
+                console.print(f"{indent}↳ {curr}")
+            
+            if curr in rev_graph:
+                for neighbor in rev_graph[curr]:
+                    if neighbor not in visited:
+                        visited.add(neighbor)
+                        queue.append((neighbor, level + 1))
+
 if __name__ == "__main__":
     app()
