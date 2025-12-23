@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { FileUpload } from "@/components/app/FileUpload";
+import { UniversalFileUpload } from "@/components/shared/UniversalFileUpload";
 import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/shared/GlassCard";
 import { AnimatedCounter } from "@/components/shared/AnimatedCounter";
@@ -16,6 +16,7 @@ import {
     X,
     Database
 } from "lucide-react";
+import { FormatBadge } from "@/components/shared/FormatBadge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { duckdbService } from "@/lib/duckdb";
 import { useData } from "@/context/DataContext";
@@ -97,8 +98,11 @@ export default function DashboardPage() {
                                             )}>
                                                 <FileText className="h-4 w-4" />
                                             </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-xs font-bold truncate max-w-[120px]">{t.name}</span>
+                                            <div className="flex flex-col flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 overflow-hidden">
+                                                    <span className="text-xs font-bold truncate">{t.name}</span>
+                                                    {t.sourceFormat && <FormatBadge format={t.sourceFormat as any} className="scale-75 origin-left" />}
+                                                </div>
                                                 <span className="text-[10px] text-muted-foreground lowercase">{t.rowCount.toLocaleString()} rows</span>
                                             </div>
                                         </div>
@@ -114,7 +118,9 @@ export default function DashboardPage() {
                                 </GlassCard>
                             ))}
                             <div className="pt-2">
-                                <FileUpload onUploadSuccess={(name) => setActiveTable(name)} />
+                                <UniversalFileUpload onUploadSuccess={(results) => {
+                                    if (results.length > 0) setActiveTable(results[0].name);
+                                }} />
                             </div>
                         </div>
                     </div>

@@ -201,7 +201,7 @@ export default function LineagePage() {
                 </div>
                 <h2 className="text-2xl font-bold">No Active Dataset</h2>
                 <p className="text-muted-foreground max-w-sm">
-                    Load a dataset to generate its provenance and lineage graph.
+                    Load a dataset (CSV, Excel, Parquet, JSON, or SQLite) to generate its provenance and lineage graph.
                 </p>
             </div>
         );

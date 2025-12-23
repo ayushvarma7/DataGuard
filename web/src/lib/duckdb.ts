@@ -47,24 +47,36 @@ class DuckDBService {
         return db;
     }
 
-    async loadFile(file: File, tableName: string): Promise<number> {
+    async registerFile(file: File): Promise<void> {
         const db = await this.getDB();
         await db.registerFileHandle(file.name, file, duckdb.DuckDBDataProtocol.BROWSER_FILEREADER, true);
+    }
 
+    async execute(sql: string): Promise<void> {
+        const db = await this.getDB();
         const conn = await db.connect();
         try {
-            if (file.name.endsWith(".parquet")) {
-                await conn.query(`CREATE TABLE "${tableName}" AS SELECT * FROM read_parquet('${file.name}')`);
-            } else {
-                await conn.query(`CREATE TABLE "${tableName}" AS SELECT * FROM read_csv_auto('${file.name}')`);
-            }
-
-            const result = await conn.query(`SELECT COUNT(*) as count FROM "${tableName}"`);
-            const count = Number(result.toArray()[0].toJSON().count);
-            return count;
+            await conn.query(sql);
         } finally {
             await conn.close();
         }
+    }
+
+    async getRowCount(tableName: string): Promise<number> {
+        const result = await this.query(`SELECT COUNT(*) as count FROM "${tableName}"`);
+        return Number(result[0].count);
+    }
+
+    async loadFile(file: File, tableName: string): Promise<number> {
+        await this.registerFile(file);
+
+        if (file.name.endsWith(".parquet")) {
+            await this.execute(`CREATE TABLE "${tableName}" AS SELECT * FROM read_parquet('${file.name}')`);
+        } else {
+            await this.execute(`CREATE TABLE "${tableName}" AS SELECT * FROM read_csv_auto('${file.name}')`);
+        }
+
+        return await this.getRowCount(tableName);
     }
 
     async query<T = any>(sql: string): Promise<T[]> {

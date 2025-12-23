@@ -165,7 +165,7 @@ export default function DriftPage() {
                 </div>
                 <h2 className="text-2xl font-bold">Drift Detection</h2>
                 <p className="text-muted-foreground max-w-sm">
-                    Load a dataset and set a baseline to start monitoring schema and data drift.
+                    Load a dataset (CSV, Excel, Parquet, JSON, or SQLite) and set a baseline to start monitoring schema and data drift.
                 </p>
             </div>
         );

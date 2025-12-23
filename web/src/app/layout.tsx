@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "DataGuard | Browser-Native Data Quality",
     description: "Privacy-first data quality framework powered by DuckDB-WASM.",
-    url: "https://dataguard.dev",
+    url: "https://dataguard.vercel.app",
     siteName: "DataGuard",
     images: [
       {

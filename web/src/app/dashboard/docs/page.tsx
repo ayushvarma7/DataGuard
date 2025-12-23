@@ -19,10 +19,10 @@ const sections = [
     {
         title: "Getting Started",
         icon: Zap,
-        content: "DataGuard is a browser-native data quality framework. To begin, upload a CSV or Parquet file in the 'Overview' tab. Your data is processed entirely locally using DuckDB-WASM.",
+        content: "DataGuard is a browser-native data quality framework. To begin, upload a data file in the 'Overview' tab. Your data is processed entirely locally using DuckDB-WASM and specialized parsers.",
         items: [
-            "Upload CSV or Parquet files",
-            "Automatic schema detection",
+            "Upload CSV, Parquet, Excel, JSON, or SQLite",
+            "Multi-table & sheet selection support",
             "Local-first privacy protection"
         ]
     },
@@ -52,7 +52,7 @@ const sections = [
         content: "Standard SQL engine powered by DuckDB. Perfect for complex joins, multi-dataset correlation, and custom profiling queries.",
         items: [
             "Support for CTEs & Window Functions",
-            "Query multiple datasets simultaneously",
+            "Query across CSV, Parquet, JSON, and SQLite simultaneously",
             "Export query results as CSV"
         ]
     },

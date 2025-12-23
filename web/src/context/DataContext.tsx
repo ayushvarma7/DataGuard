@@ -7,6 +7,7 @@ interface LoadedTable {
     name: string;
     rowCount: number;
     schema: any[];
+    sourceFormat?: string;
 }
 
 interface DataState {
@@ -19,7 +20,7 @@ interface DataState {
 }
 
 interface DataContextType extends DataState {
-    addTable: (name: string, count: number, schema: any[]) => void;
+    addTable: (name: string, count: number, schema: any[], sourceFormat?: string) => void;
     setActiveTable: (name: string | null) => void;
     removeTable: (name: string) => void;
     resetData: () => void;
@@ -74,9 +75,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         }
     }, [state.baselines, state.rules, isLoaded]);
 
-    const addTable = useCallback((name: string, count: number, schema: any[]) => {
+    const addTable = useCallback((name: string, count: number, schema: any[], sourceFormat?: string) => {
         setState(prev => {
-            const newTables = { ...prev.tables, [name]: { name, rowCount: count, schema } };
+            const newTables = { ...prev.tables, [name]: { name, rowCount: count, schema, sourceFormat } };
             return {
                 ...prev,
                 tables: newTables,

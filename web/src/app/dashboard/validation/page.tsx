@@ -181,7 +181,7 @@ export default function ValidationPage() {
                 </div>
                 <h2 className="text-2xl font-bold">No Active Dataset</h2>
                 <p className="text-muted-foreground max-sm mx-auto">
-                    Please upload a dataset to define and run quality validation rules.
+                    Please upload a dataset (CSV, Excel, Parquet, JSON, or SQLite) to define and run quality validation rules.
                 </p>
             </div>
         );

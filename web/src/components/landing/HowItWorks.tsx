@@ -8,7 +8,7 @@ import { GlassCard } from "@/components/shared/GlassCard";
 const steps = [
     {
         title: "Connect",
-        description: "Drop your CSV or Parquet files. Everything stays local in your browser.",
+        description: "Drop CSV, Excel, Parquet, JSON, or SQLite files. Everything stays local in your browser.",
         icon: Upload,
         color: "text-blue-400",
     },

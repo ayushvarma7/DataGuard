@@ -131,7 +131,7 @@ export default function SchemaPage() {
                 </div>
                 <h2 className="text-2xl font-bold">No Active Dataset</h2>
                 <p className="text-muted-foreground max-w-sm">
-                    Please upload a CSV or Parquet file in the Overview tab to explore its schema.
+                    Please upload a data file (CSV, Excel, Parquet, JSON, or SQLite) in the Overview tab to explore its schema.
                 </p>
             </div>
         );

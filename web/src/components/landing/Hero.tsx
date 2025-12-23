@@ -2,10 +2,11 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Upload, Shield, ChevronRight, Github, FileText, Activity } from "lucide-react";
+import { Upload, Shield, ChevronRight, Github, FileText, Activity, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/shared/GlassCard";
 import Link from "next/link";
+import { UniversalFileUpload } from "@/components/shared/UniversalFileUpload";
 
 export function Hero() {
     const containerVariants = {
@@ -107,34 +108,9 @@ export function Hero() {
                     </a>
                 </motion.div>
 
-                {/* Dropzone Preview */}
+                {/* Universal Upload Component */}
                 <motion.div variants={itemVariants} className="pt-12">
-                    <GlassCard className="max-w-2xl mx-auto p-1 cursor-default group overflow-hidden gradient-border">
-                        <div className="bg-[#0a0a0f]/80 rounded-lg p-12 border border-dashed border-white/10 group-hover:border-primary/50 transition-colors flex flex-col items-center gap-6">
-                            <div className="relative">
-                                <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full" />
-                                <div className="relative bg-primary/10 p-5 rounded-2xl border border-primary/20">
-                                    <Upload className="h-10 w-10 text-primary" />
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <h3 className="text-xl font-semibold">Drop your data here</h3>
-                                <p className="text-muted-foreground text-sm max-w-xs mx-auto">
-                                    Select CSV or Parquet files to instantly detect schema drift and run quality checks.
-                                </p>
-                            </div>
-                            <div className="flex gap-4 pt-2">
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <Shield className="h-3 w-3 text-secondary" />
-                                    100% Client-side
-                                </div>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <Activity className="h-3 w-3 text-secondary" />
-                                    WASM Powered
-                                </div>
-                            </div>
-                        </div>
-                    </GlassCard>
+                    <UniversalFileUpload redirectToDashboard={true} />
                 </motion.div>
 
                 {/* Fake Trust Badges / Built With */}
