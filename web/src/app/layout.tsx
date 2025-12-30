@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { DataProvider } from "@/context/DataContext";
+import { ToastProvider } from "@/components/shared/Toast";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -57,8 +59,12 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
-        {children}
+        <DataProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </DataProvider>
       </body>
     </html>
   );
 }
+
+

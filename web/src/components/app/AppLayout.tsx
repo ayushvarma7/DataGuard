@@ -15,12 +15,13 @@ import {
     Settings,
     Menu,
     X,
-    BookOpen
+    BookOpen,
+    BarChart3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { DataProvider, useData } from "@/context/DataContext";
+import { useData } from "@/context/DataContext";
 
 interface NavItem {
     title: string;
@@ -31,12 +32,14 @@ interface NavItem {
 const navItems: NavItem[] = [
     { title: "Overview", href: "/dashboard", icon: Layout },
     { title: "Schema", href: "/dashboard/schema", icon: Database },
+    { title: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
     { title: "SQL Lab", href: "/dashboard/sql", icon: Terminal },
     { title: "Validation", href: "/dashboard/validation", icon: ShieldCheck },
     { title: "Drift", href: "/dashboard/drift", icon: Activity },
     { title: "Lineage", href: "/dashboard/lineage", icon: GitGraph },
     { title: "Docs", href: "/dashboard/docs", icon: BookOpen },
 ];
+
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
     const [collapsed, setCollapsed] = useState(false);
@@ -188,8 +191,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
     return (
-        <DataProvider>
-            <DashboardShell>{children}</DashboardShell>
-        </DataProvider>
+        <DashboardShell>{children}</DashboardShell>
     );
 }
+

@@ -1,20 +1,32 @@
-import initSqlJs, { Database } from 'sql.js';
 import { FileProcessor, ProcessedTable, FileProcessorOptions, ColumnSchema } from '../file-processor';
 import { db as duckdb } from '../duckdb';
 import { FormatDetectionResult } from '../format-detector';
 
+// Types from sql.js - we define them here to avoid importing the module at build time
+type SqlJsDatabase = {
+    exec: (sql: string) => { columns: string[], values: any[][] }[];
+    close: () => void;
+};
+
+type SqlJsStatic = {
+    Database: new (data?: ArrayLike<number>) => SqlJsDatabase;
+};
+
 export class SQLiteProcessor implements FileProcessor {
     format = 'sqlite' as const;
-    private sqljs: Awaited<ReturnType<typeof initSqlJs>> | null = null;
+    private sqljs: SqlJsStatic | null = null;
 
-    private async initSqlJs(): Promise<Awaited<ReturnType<typeof initSqlJs>>> {
+    private async initSqlJs(): Promise<SqlJsStatic> {
         if (!this.sqljs) {
+            // Dynamic import to avoid SSR issues with fs module
+            const initSqlJs = (await import('sql.js')).default;
             this.sqljs = await initSqlJs({
                 locateFile: (file: string) => `https://sql.js.org/dist/${file}`
             });
         }
         return this.sqljs;
     }
+
 
     canProcess(file: File, detection: FormatDetectionResult): boolean {
         return detection.format === 'sqlite';
@@ -114,12 +126,12 @@ export class SQLiteProcessor implements FileProcessor {
         }
     }
 
-    private async listTablesFromDB(db: Database): Promise<string[]> {
+    private async listTablesFromDB(db: SqlJsDatabase): Promise<string[]> {
         const result = db.exec(`
       SELECT name FROM sqlite_master 
       WHERE type='table' AND name NOT LIKE 'sqlite_%'
     `);
-        return result[0]?.values.map(row => String(row[0])) || [];
+        return result[0]?.values.map((row: any[]) => String(row[0])) || [];
     }
 
     private mapSQLiteType(sqliteType: string): string {
@@ -135,7 +147,7 @@ export class SQLiteProcessor implements FileProcessor {
     private async loadIntoDuckDB(
         tableName: string,
         columns: ColumnSchema[],
-        sqliteDb: Database,
+        sqliteDb: SqlJsDatabase,
         sourceTable: string,
         maxRows?: number
     ): Promise<void> {
@@ -154,8 +166,8 @@ export class SQLiteProcessor implements FileProcessor {
 
             for (let i = 0; i < values.length; i += batchSize) {
                 const batch = values.slice(i, i + batchSize);
-                const insertValues = batch.map(row =>
-                    `(${row.map((v, j) => this.formatValue(v, columns[j].type)).join(', ')})`
+                const insertValues = batch.map((row: any[]) =>
+                    `(${row.map((v: any, j: number) => this.formatValue(v, columns[j].type)).join(', ')})`
                 ).join(', ');
 
                 await duckdb.execute(`INSERT INTO "${tableName}" VALUES ${insertValues}`);

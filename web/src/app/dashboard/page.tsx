@@ -14,13 +14,24 @@ import {
     AlertCircle,
     RefreshCw,
     X,
-    Database
+    Database,
+    Download,
+    FileSpreadsheet,
+    FileJson
 } from "lucide-react";
 import { FormatBadge } from "@/components/shared/FormatBadge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { duckdbService } from "@/lib/duckdb";
 import { useData } from "@/context/DataContext";
 import { Button } from "@/components/ui/button";
+import { exportTable, ExportFormat } from "@/lib/format-export";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 
 export default function DashboardPage() {
     const { activeTable, tables, setActiveTable, removeTable, resetData } = useData();
@@ -155,8 +166,35 @@ export default function DashboardPage() {
                                         Previewing Head
                                         <span className="h-1 w-1 rounded-full bg-primary animate-pulse" />
                                     </h3>
-                                    <span className="text-[10px] font-mono text-muted-foreground bg-white/5 px-2 py-0.5 rounded-full border border-white/10">LIMIT 5</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-mono text-muted-foreground bg-white/5 px-2 py-0.5 rounded-full border border-white/10">LIMIT 5</span>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="outline" size="sm" className="h-7 text-[10px] border-white/10">
+                                                    <Download className="mr-1 h-3 w-3" />
+                                                    Export
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent className="bg-[#0a0a0f] border-white/10">
+                                                <DropdownMenuItem
+                                                    onClick={() => activeTable && exportTable({ format: 'csv', tableName: activeTable })}
+                                                    className="text-xs cursor-pointer"
+                                                >
+                                                    <FileSpreadsheet className="mr-2 h-3.5 w-3.5" />
+                                                    Export as CSV
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={() => activeTable && exportTable({ format: 'json', tableName: activeTable })}
+                                                    className="text-xs cursor-pointer"
+                                                >
+                                                    <FileJson className="mr-2 h-3.5 w-3.5" />
+                                                    Export as JSON
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
                                 </div>
+
 
                                 <GlassCard className="overflow-hidden border-white/5">
                                     <div className="overflow-x-auto custom-scrollbar">
