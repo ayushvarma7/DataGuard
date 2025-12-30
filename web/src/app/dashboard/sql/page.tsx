@@ -40,11 +40,30 @@ export default function SQLLabPage() {
         }
     };
 
+    const tableList = Object.keys(tables);
+    const secondTable = tableList.length > 1 ? tableList.find(t => t !== activeTable) : null;
+
     const snippets = [
-        { name: "Preview 10", sql: activeTable ? `SELECT * FROM "${activeTable}" LIMIT 10` : "" },
-        { name: "Schema Inspect", sql: activeTable ? `DESCRIBE "${activeTable}"` : "" },
-        { name: "Top 5 Nulls", sql: activeTable ? `SELECT * FROM "${activeTable}" WHERE "${activeTable}" IS NULL LIMIT 5` : "" },
-        { name: "Row Count", sql: activeTable ? `SELECT COUNT(*) FROM "${activeTable}"` : "" },
+        { name: "Preview", sql: activeTable ? `SELECT * FROM "${activeTable}" LIMIT 10` : "" },
+        { name: "Schema", sql: activeTable ? `DESCRIBE "${activeTable}"` : "" },
+        { name: "Count", sql: activeTable ? `SELECT COUNT(*) as total FROM "${activeTable}"` : "" },
+        {
+            name: "Stats", sql: activeTable ? `SELECT 
+  COUNT(*) as rows,
+  COUNT(DISTINCT *) as unique_rows
+FROM "${activeTable}"` : ""
+        },
+        ...(secondTable ? [{
+            name: "Cross JOIN",
+            sql: `SELECT a.*, b.* 
+FROM "${activeTable}" a
+JOIN "${secondTable}" b ON TRUE
+LIMIT 10`
+        }] : []),
+        {
+            name: "Nulls", sql: activeTable ? `SELECT * FROM "${activeTable}" 
+WHERE ${tables[activeTable]?.schema?.[0]?.column_name ? `"${tables[activeTable].schema[0].column_name}" IS NULL` : 'FALSE'} LIMIT 5` : ""
+        },
     ];
 
     if (Object.keys(tables).length === 0) {

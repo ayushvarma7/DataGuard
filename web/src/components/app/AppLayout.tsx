@@ -33,12 +33,14 @@ const navItems: NavItem[] = [
     { title: "Overview", href: "/dashboard", icon: Layout },
     { title: "Schema", href: "/dashboard/schema", icon: Database },
     { title: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
+    { title: "Compare", href: "/dashboard/compare", icon: GitGraph },
     { title: "SQL Lab", href: "/dashboard/sql", icon: Terminal },
     { title: "Validation", href: "/dashboard/validation", icon: ShieldCheck },
     { title: "Drift", href: "/dashboard/drift", icon: Activity },
     { title: "Lineage", href: "/dashboard/lineage", icon: GitGraph },
     { title: "Docs", href: "/dashboard/docs", icon: BookOpen },
 ];
+
 
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
