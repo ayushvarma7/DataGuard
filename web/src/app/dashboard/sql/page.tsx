@@ -12,8 +12,11 @@ import {
     Download,
     Trash2,
     Sparkles,
-    Search
+    Search,
+    Copy,
+    Check
 } from "lucide-react";
+import { copyToClipboard, exportTable } from "@/lib/format-export";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
@@ -24,6 +27,16 @@ export default function SQLLabPage() {
     const [results, setResults] = useState<any[] | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = async (format: 'json' | 'csv') => {
+        if (!results) return;
+        const success = await copyToClipboard(results, format);
+        if (success) {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
+    };
 
     const runQuery = async () => {
         if (!query.trim()) return;
@@ -146,10 +159,26 @@ WHERE ${tables[activeTable]?.schema?.[0]?.column_name ? `"${tables[activeTable].
                                 {results && <span className="text-[10px] font-normal text-muted-foreground">({results.length} rows)</span>}
                             </h3>
                             {results && results.length > 0 && (
-                                <Button variant="ghost" size="sm" className="h-7 text-[10px] text-muted-foreground hover:text-foreground">
-                                    <Download className="mr-2 h-3.5 w-3.5" />
-                                    Export CSV
-                                </Button>
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleCopy('csv')}
+                                        className="h-8 text-[10px] bg-white/[0.02] border-white/10 hover:bg-white/5"
+                                    >
+                                        {copied ? <Check className="mr-2 h-3 w-3 text-primary" /> : <Copy className="mr-2 h-3 w-3" />}
+                                        Copy TSV
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => exportTable({ format: 'csv', tableName: activeTable || 'query_results', filename: 'query_results.csv' })}
+                                        className="h-8 text-[10px] bg-white/[0.02] border-white/10 hover:bg-white/5"
+                                    >
+                                        <Download className="mr-2 h-3.5 w-3.5" />
+                                        Export CSV
+                                    </Button>
+                                </div>
                             )}
                         </div>
 

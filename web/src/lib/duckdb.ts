@@ -93,6 +93,11 @@ class DuckDBService {
     async getSchema(tableName: string) {
         return await this.query(`DESCRIBE "${tableName}"`);
     }
+
+    async copyFileToBuffer(fileName: string): Promise<Uint8Array> {
+        const db = await this.getDB();
+        return await db.copyFileToBuffer(fileName);
+    }
 }
 
 export const duckdbService = new DuckDBService();

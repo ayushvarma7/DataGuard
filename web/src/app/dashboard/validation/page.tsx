@@ -15,8 +15,10 @@ import {
     Database,
     Sparkles,
     ArrowRight,
-    Code2
+    Code2,
+    Download
 } from "lucide-react";
+import { downloadRulesAsYAML } from "@/lib/format-export";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -157,20 +159,13 @@ export default function ValidationPage() {
         }
     };
 
-    const exportToYAML = () => {
+    const handleExportRules = () => {
         if (!activeTable) return;
-        const yaml = `dataset: ${activeTable}\nchecks:\n` +
-            tableRules.map(r => `  - column: "${r.column}"\n    type: ${r.type}`).join("\n");
-
-        const blob = new Blob([yaml], { type: "text/yaml" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${activeTable}_contract.yaml`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        downloadRulesAsYAML(activeTable, tableRules.map(r => ({
+            column: r.column,
+            rule: r.type,
+            params: {}
+        })));
     };
 
     if (!activeTable) {
@@ -212,7 +207,7 @@ export default function ValidationPage() {
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={exportToYAML}
+                                onClick={handleExportRules}
                                 className="text-muted-foreground hover:text-primary transition-colors h-8"
                             >
                                 <Code2 className="mr-2 h-4 w-4" />
