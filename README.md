@@ -8,7 +8,7 @@
 
 DataGuard is a lightweight, open-source data quality framework that helps data engineers catch schema changes, validate data quality, and track column-level lineage—all without expensive enterprise tools.
 
-**🌐 [Try the Live Demo (Vercel)](https://dataguard-pi.vercel.app)** — Multi-Table Engine, SQL Lab, and interactive lineage. Your data never leaves your machine.
+**🌐 [Try the Live Demo (Vercel)](https://getdataguard.vercel.app/)** — Multi-Table Engine, SQL Lab, and interactive lineage. Your data never leaves your machine.
 
 ---
 
